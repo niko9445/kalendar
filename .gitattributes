@@ -1,0 +1,16 @@
+# Установите поведение для окончаний строк
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+
+# Бинарные файлы
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
