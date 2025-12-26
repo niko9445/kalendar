@@ -1,58 +1,89 @@
 import React from 'react';
-import './App.css';
-import Calendar from './components/Calendar';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { GoalsProvider } from './contexts/GoalsContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import LoginForm from './components/LoginForm/LoginForm';
+import Goals from './pages/Goals/Goals';
+import Calendar from './pages/Calendar/Calendar';
+import Settings from './pages/Settings/Settings';
 
-function App() {
+const App: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Календарное приложение
-          </h1>
-          <p className="mt-2 text-gray-600">
-            Создано с React, TypeScript и Tailwind CSS
-          </p>
-        </div>
-      </header>
-      
-      <main className="max-w-7xl mx-auto py-6 px-4">
-        <div className="bg-white rounded-lg shadow p-6">
-          <Calendar />
-        </div>
-        
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Добро пожаловать!</h2>
-            <p className="text-gray-600">
-              Это React приложение с TypeScript и Tailwind CSS.
-            </p>
-            <button className="mt-4 btn btn-primary">
-              Начать работу
-            </button>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Технологии</h2>
-            <ul className="space-y-2 text-gray-600">
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                React 19 с TypeScript
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                Tailwind CSS для стилей
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
-                date-fns для работы с датами
-              </li>
-            </ul>
-          </div>
-        </div>
-      </main>
-    </div>
+    <Router>
+      <ThemeProvider>
+        <AuthProvider>
+          <GoalsProvider>
+            <div className="min-h-screen bg-background dark:bg-dark-background text-text-primary dark:text-dark-text-primary font-sans transition-colors duration-200">
+              <Routes>
+                {/* Перенаправление с корня на логин */}
+                <Route path="/" element={<Navigate to="/login" replace />} />
+                
+                {/* Страница логина */}
+                <Route path="/login" element={<LoginForm />} />
+                
+                {/* Защищенные маршруты */}
+                <Route
+                  path="/goals"
+                  element={
+                    <ProtectedRoute>
+                      <Goals />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                {/* Календарь */}
+                <Route
+                  path="/calendar"
+                  element={
+                    <ProtectedRoute>
+                      <Calendar />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                {/* Перенаправление на цели как главную страницу */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Navigate to="/goals" replace />
+                    </ProtectedRoute>
+                  }
+                />
+                
+                {/* Страница 404 */}
+                <Route path="*" element={
+                  <div className="min-h-screen flex items-center justify-center">
+                    <div className="text-center">
+                      <h1 className="text-4xl font-bold text-text-primary dark:text-dark-text-primary mb-4">404</h1>
+                      <p className="text-text-secondary dark:text-dark-text-secondary mb-6">Страница не найдена</p>
+                      <a 
+                        href="/goals" 
+                        className="px-6 py-3 bg-primary dark:bg-dark-primary text-white rounded-lg hover:bg-primary-dark dark:hover:bg-dark-primary-dark transition-colors"
+                      >
+                        На главную
+                      </a>
+                    </div>
+                  </div>
+                } />
+              </Routes>
+            </div>
+          </GoalsProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </Router>
   );
-}
+};
 
 export default App;

@@ -1,0 +1,45 @@
+// Цветовая палитра
+$primary-color: #4A6BFF;
+$primary-dark: #3A56D4;
+$primary-light: #6C8AFF;
+
+$background-color: #F8F9FA;
+$surface-color: #FFFFFF;
+
+$text-primary: #2D3748;
+$text-secondary: #718096;
+$text-disabled: #A0AEC0;
+
+$border-color: #E2E8F0;
+$error-color: #E53E3E;
+$success-color: #38A169;
+$warning-color: #DD6B20;
+
+// Тени
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+$shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+// Радиусы скругления
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 20px;
+
+// Отступы
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-2xl: 48px;
+
+// Анимации
+$transition-fast: 150ms;
+$transition-base: 250ms;
+$transition-slow: 350ms;
+
+// Z-индексы
+$z-dropdown: 100;
+$z-modal: 1000;
+$z-tooltip: 1100;
