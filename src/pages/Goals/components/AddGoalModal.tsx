@@ -203,7 +203,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                   onChange={(e) => handleChange('title', e.target.value)}
                   className={cn(
                     "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",
-                    "focus:outline-none focus:ring-1 focus:ring-accent dark:focus:ring-dark-accent focus:border-accent dark:focus:border-dark-accent",
+                    "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
                     "min-h-[40px] dark:bg-dark-surface",
                     errors.title 
                       ? "border-error dark:border-dark-error" 
@@ -226,7 +226,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
                   className="w-full px-3 py-2 border border-border dark:border-dark-border rounded-md text-text-primary dark:text-dark-text-primary text-sm
-                           focus:outline-none focus:ring-1 focus:ring-accent dark:focus:ring-dark-accent focus:border-accent dark:focus:border-dark-accent
+                           focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500
                            min-h-[80px] resize-none dark:bg-dark-surface"
                   placeholder="Добавьте детали..."
                 />
@@ -242,7 +242,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                   onChange={(e) => handleChange('category', e.target.value)}
                   className={cn(
                     "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",
-                    "focus:outline-none focus:ring-1 focus:ring-accent dark:focus:ring-dark-accent focus:border-accent dark:focus:border-dark-accent",
+                    "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
                     "min-h-[40px] dark:bg-dark-surface",
                     errors.category 
                       ? "border-error dark:border-dark-error" 
@@ -276,7 +276,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                         "flex-1 px-3 py-2 text-sm font-medium rounded-md border transition-colors",
                         "min-h-[40px]",
                         formData.priority === priority.value
-                          ? "border-accent dark:border-dark-accent bg-accent/10 dark:bg-dark-accent/20 text-accent-DEFAULT dark:text-dark-accent-DEFAULT"
+                          ? "border-blue-500 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
                           : "border-border dark:border-dark-border text-text-secondary dark:text-dark-text-secondary hover:border-border-light dark:hover:border-dark-border-light"
                       )}
                     >
@@ -301,7 +301,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                       max={maxDateString}
                       className={cn(
                         "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",
-                        "focus:outline-none focus:ring-1 focus:ring-accent dark:focus:ring-dark-accent focus:border-accent dark:focus:border-dark-accent",
+                        "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
                         "appearance-none min-h-[40px] dark:bg-dark-surface",
                         errors.startDate 
                           ? "border-error dark:border-dark-error" 
@@ -327,7 +327,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                       max={maxDateString}
                       className={cn(
                         "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",
-                        "focus:outline-none focus:ring-1 focus:ring-accent dark:focus:ring-dark-accent focus:border-accent dark:focus:border-dark-accent",
+                        "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
                         "appearance-none min-h-[40px] dark:bg-dark-surface",
                         errors.deadline 
                           ? "border-error dark:border-dark-error" 
@@ -360,8 +360,8 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="flex-1 py-2.5 bg-primary dark:bg-dark-primary text-white font-medium 
-                         rounded-lg hover:bg-primary-dark dark:hover:bg-dark-primary-dark transition-colors text-sm"
+                className="flex-1 py-2.5 bg-blue-600 dark:bg-blue-600 text-white font-medium 
+                         rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors text-sm"
               >
                 Создать
               </button>

@@ -19,7 +19,7 @@ const BottomNav: React.FC = () => {
       label: 'Цели',
       icon: (isActive) => (
         <svg 
-          className="w-6 h-6" 
+          className="w-5 h-5" 
           fill="none" 
           stroke="currentColor" 
           strokeWidth={isActive ? 2 : 1.5}
@@ -35,7 +35,7 @@ const BottomNav: React.FC = () => {
       label: 'Календарь',
       icon: (isActive) => (
         <svg 
-          className="w-6 h-6" 
+          className="w-5 h-5" 
           fill="none" 
           stroke="currentColor" 
           strokeWidth={isActive ? 2 : 1.5}
@@ -51,7 +51,7 @@ const BottomNav: React.FC = () => {
       label: 'Настройки',
       icon: (isActive) => (
         <svg 
-          className="w-6 h-6" 
+          className="w-5 h-5" 
           fill="none" 
           stroke="currentColor" 
           strokeWidth={isActive ? 2 : 1.5}
@@ -74,14 +74,14 @@ const BottomNav: React.FC = () => {
 
   return (
     <>
-      {/* Безопасный отступ для контента */}
-      <div className="h-16" />
+      {/* Безопасный отступ для контента - уменьшен до 56px */}
+      <div className="h-14" />
       
       {/* Навигация */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-t border-gray-200 dark:border-gray-700">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         {/* Safe Area для iPhone */}
         <div className="pb-safe">
-          <div className="flex justify-around items-center h-14 px-2">
+          <div className="flex justify-around items-center h-12 px-2">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               
@@ -91,7 +91,7 @@ const BottomNav: React.FC = () => {
                   onClick={() => handleNavigation(item.path)}
                   className={cn(
                     "flex flex-col items-center justify-center",
-                    "relative w-16 py-2 transition-all duration-200",
+                    "relative w-16 py-1 transition-all duration-200",
                     "active:bg-transparent active:scale-95",
                     "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900",
                     "select-none"
@@ -100,7 +100,7 @@ const BottomNav: React.FC = () => {
                 >
                   {/* Иконка */}
                   <div className={cn(
-                    "relative flex items-center justify-center w-8 h-8",
+                    "relative flex items-center justify-center w-5 h-5 mb-0.5",
                     isActive 
                       ? "text-blue-600 dark:text-blue-400" 
                       : "text-gray-500 dark:text-gray-400"
@@ -110,9 +110,9 @@ const BottomNav: React.FC = () => {
                   
                   {/* Текст */}
                   <span className={cn(
-                    "text-xs mt-0.5 transition-all duration-200",
+                    "text-xs transition-all duration-200 leading-tight",
                     isActive 
-                      ? "text-blue-600 dark:text-blue-400 font-semibold" 
+                      ? "text-blue-600 dark:text-blue-400 font-medium" 
                       : "text-gray-500 dark:text-gray-400"
                   )}>
                     {item.label}
