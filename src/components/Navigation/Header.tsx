@@ -26,6 +26,7 @@ const Header: React.FC<HeaderProps> = ({
                 onClick={onBack}
                 className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-surface dark:hover:bg-dark-surface active:bg-border dark:active:bg-dark-border transition-colors -ml-2"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
+                aria-label="Назад" // ДОБАВИЛ aria-label
               >
                 <svg 
                   className="w-5 h-5 text-text-primary dark:text-dark-text-primary" 

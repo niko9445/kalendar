@@ -1,7 +1,9 @@
 import React, { useState, useRef, useMemo, useCallback } from 'react';
 import { cn } from '../../../utils/cn';
+import { useTranslation } from '../../../i18n/hooks';
 import GoalEventModal from './GoalEventModal';
 import { Goal, CalendarEvent } from '../../../contexts/GoalsContext';
+import { useGoals } from '../../../contexts/GoalsContext'; // ДОБАВЬТЕ ЭТОТ ИМПОРТ
 
 interface GoalCalendarProps {
   goal: Goal;
@@ -12,7 +14,6 @@ interface GoalCalendarProps {
   onDeleteGoal: () => void;
 }
 
-// Вспомогательные функции для работы с датами
 const getDaysInMonth = (date: Date) => {
   const year = date.getFullYear();
   const month = date.getMonth();
@@ -25,13 +26,11 @@ const getFirstDayOfMonth = (date: Date) => {
   return new Date(year, month, 1).getDay();
 };
 
-const getMonthName = (date: Date) => {
-  return date.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
-};
-
-const getDayName = (dayIndex: number) => {
-  const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-  return days[dayIndex];
+const getMonthName = (date: Date, language: string) => {
+  return date.toLocaleDateString(language === 'ru' ? 'ru-RU' : 'en-US', { 
+    month: 'long', 
+    year: 'numeric' 
+  });
 };
 
 const GoalCalendar: React.FC<GoalCalendarProps> = ({
@@ -42,14 +41,29 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
   onEventToggleComplete,
   onDeleteGoal,
 }) => {
+  const { t, language } = useTranslation();
+  const { toggleCompletionDay, isCompletionDayEvent } = useGoals(); // ДОБАВЬТЕ ЭТО
+  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
   
-  // Для отслеживания кликов
   const clickCountRef = useRef<number>(0);
   const lastClickDateRef = useRef<string>('');
   const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const getDayName = useCallback((dayIndex: number) => {
+    const days = [
+      t('calendar.dayNames.sun'),
+      t('calendar.dayNames.mon'),
+      t('calendar.dayNames.tue'),
+      t('calendar.dayNames.wed'),
+      t('calendar.dayNames.thu'),
+      t('calendar.dayNames.fri'),
+      t('calendar.dayNames.sat'),
+    ];
+    return days[dayIndex];
+  }, [t]);
 
   // Мемоизированная генерация календаря
   const calendarDays = useMemo(() => {
@@ -60,20 +74,19 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
     
     const days = [];
     
-    // Пустые ячейки перед первым днем
     for (let i = 0; i < firstDay; i++) {
       days.push(null);
     }
     
-    // Дни месяца
     for (let i = 1; i <= daysInMonth; i++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
       const dayEvents = events.filter(event => event.date === dateStr && event.goalId === goal.id);
       const isToday = dateStr === new Date().toISOString().split('T')[0];
       const isSelected = selectedDate === dateStr;
       
-      const hasCompletionDay = dayEvents.some(event => event.title === 'День выполнения');
-      const hasRegularEvents = dayEvents.some(event => event.title !== 'День выполнения');
+      // Используем функцию из контекста
+      const hasCompletionDay = dayEvents.some(isCompletionDayEvent);
+      const hasRegularEvents = dayEvents.some(event => !isCompletionDayEvent(event));
       
       days.push({
         date: i,
@@ -87,13 +100,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
     }
     
     return days;
-  }, [currentDate, events, goal.id, selectedDate]);
-
-  // Мемоизированные события выбранной даты
-  const selectedDateEvents = useMemo(() => {
-    if (!selectedDate) return [];
-    return events.filter(event => event.date === selectedDate && event.goalId === goal.id);
-  }, [selectedDate, events, goal.id]);
+  }, [currentDate, events, goal.id, selectedDate, isCompletionDayEvent]);
 
   // Оптимизированный обработчик кликов
   const handleDateClick = useCallback((dateStr: string) => {
@@ -113,26 +120,8 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
       clickCountRef.current = 0;
       
       if (clicks === 2) {
-        const existingEvent = events.find(event => 
-          event.date === dateStr && 
-          event.goalId === goal.id && 
-          event.title === 'День выполнения'
-        );
-
-        if (existingEvent) {
-          onEventDelete(existingEvent.id);
-        } else {
-          const newEvent: Omit<CalendarEvent, 'id'> = {
-            title: 'День выполнения',
-            description: '',
-            date: dateStr,
-            color: 'bg-blue-500', // ИЗМЕНЕНО: было bg-accent-DEFAULT
-            type: 'work',
-            completed: false,
-            goalId: goal.id,
-          };
-          onEventSave(newEvent);
-        }
+        // Используем функцию toggleCompletionDay из контекста
+        toggleCompletionDay(goal.id, dateStr, t('calendar.completionDay'));
         setSelectedDate(null);
       }
       else if (clicks >= 3) {
@@ -143,9 +132,8 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
         setSelectedDate(dateStr);
       }
     }, 300);
-  }, [events, goal.id, onEventDelete, onEventSave]);
+  }, [goal.id, t, toggleCompletionDay]);
 
-  // Оптимизированные обработчики навигации
   const handlePrevMonth = useCallback(() => {
     setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
     setSelectedDate(null);
@@ -164,14 +152,12 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
   }, []);
 
-  // Обработчик удаления цели
   const handleDeleteGoal = useCallback(() => {
-    if (window.confirm(`Вы уверены, что хотите удалить цель "${goal.title}"? Все связанные события также будут удалены.`)) {
+    if (window.confirm(t('calendar.deleteGoalConfirm', { title: goal.title }))) {
       onDeleteGoal();
     }
-  }, [goal.title, onDeleteGoal]);
+  }, [goal.title, onDeleteGoal, t]);
 
-  // Очищаем таймер при размонтировании
   React.useEffect(() => {
     return () => {
       if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
@@ -184,10 +170,10 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
       <div className="flex justify-between items-center mb-4">
         <div>
           <h4 className="text-sm font-medium text-gray-800 dark:text-gray-100">
-            Календарь цели
+            {t('calendar.goalCalendar.title')}
           </h4>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {getMonthName(currentDate)}
+            {getMonthName(currentDate, language)}
           </p>
         </div>
         
@@ -195,6 +181,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
           <button
             onClick={handlePrevMonth}
             className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+            aria-label={t('calendar.prevMonth')}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -205,12 +192,13 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
             onClick={handleToday}
             className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-medium rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
-            Сегодня
+            {t('calendar.today')}
           </button>
           
           <button
             onClick={handleNextMonth}
             className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+            aria-label={t('calendar.nextMonth')}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -249,19 +237,18 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
                   "transition-all duration-150",
                   "active:scale-95",
                   day.hasCompletionDay 
-                    ? "bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800" 
-                    : day.isToday
-                    ? "ring-1 ring-blue-500 bg-gray-100 dark:bg-gray-800"
+                    ? "bg-primary/10 dark:bg-dark-primary/20 border border-primary/20 dark:border-dark-primary/30" 
                     : "hover:bg-gray-100 dark:hover:bg-gray-800",
                   day.isSelected && "ring-2 ring-blue-500"
                 )}
               >
                 <div className={cn(
-                  "text-sm font-medium relative z-10",
+                  "text-sm font-medium",
                   day.hasCompletionDay 
-                    ? "text-blue-600 dark:text-blue-400 font-semibold" 
+                    ? "text-primary dark:text-dark-primary font-bold" 
+                    : day.isToday
+                    ? "text-primary dark:text-dark-primary font-bold" // Жирный primary цвет
                     : "text-gray-800 dark:text-gray-200",
-                  day.isToday && "font-semibold"
                 )}>
                   {day.date}
                 </div>
@@ -274,7 +261,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
               
               {/* Индикатор дня выполнения */}
               {day.hasCompletionDay && (
-                <div className="absolute top-0 right-0 w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full transform translate-x-1/4 -translate-y-1/4" />
+                <div className="absolute top-0 right-0 w-2 h-2 bg-primary dark:bg-dark-primary rounded-full transform translate-x-1/4 -translate-y-1/4" />
               )}
             </div>
           );
@@ -282,20 +269,20 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
       </div>
 
       {/* Список событий выбранной даты */}
-      {selectedDate && selectedDateEvents.length > 0 && (
+      {selectedDate && events.filter(event => event.date === selectedDate && event.goalId === goal.id).length > 0 && (
         <div className="mb-4">
           <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 flex items-center">
             <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            {new Date(selectedDate).toLocaleDateString('ru-RU', {
+            {new Date(selectedDate).toLocaleDateString(language === 'ru' ? 'ru-RU' : 'en-US', {
               day: 'numeric',
               month: 'long'
             })}
           </div>
           <div className="space-y-1">
-            {selectedDateEvents
-              .filter(event => event.title !== 'День выполнения')
+            {events
+              .filter(event => event.date === selectedDate && event.goalId === goal.id && !isCompletionDayEvent(event))
               .map((event) => {
                 const isFinanceEvent = event.amount !== undefined;
                 
@@ -308,9 +295,9 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
                   });
                   
                   const sign = event.amount >= 0 ? '+' : '';
-                  const amountText = `${sign}${formattedAmount} ${event.currency || 'RUB'}`;
+                  const amountText = `${sign}${formattedAmount} ${event.currency || t('calendar.defaultCurrency')}`;
                   
-                  displayText = event.title && event.title !== 'Транзакция' 
+                  displayText = event.title && event.title !== t('calendar.transaction') 
                     ? `${event.title} - ${amountText}`
                     : amountText;
                 }
@@ -357,6 +344,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
                     <button
                       onClick={() => onEventDelete(event.id)}
                       className="p-1 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors ml-1 flex-shrink-0"
+                      aria-label={t('common.delete')}
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -371,7 +359,9 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
 
       {/* Подсказка */}
       <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700 mb-3">
-        <p>💡 Нажмите на дату <span className="font-semibold">дважды</span> - отметить день выполнения, <span className="font-semibold">трижды</span> - добавить событие</p>
+        <p>
+          {t('calendar.hint')}
+        </p>
       </div>
 
       {/* Кнопка удаления цели */}
@@ -383,11 +373,11 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
           </svg>
-          Удалить цель
+          {t('calendar.deleteGoalButton')}
         </button>
       </div>
 
-      {/* Модальное окно добавления события */}
+      {/* Модальное окно */}
       <GoalEventModal
         isOpen={showEventModal}
         onClose={() => {

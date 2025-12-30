@@ -1,10 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTranslation } from '../../i18n/hooks'; // ДОБАВИЛ ИМПОРТ
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { t, auth, common } = useTranslation(); // ИСПОЛЬЗУЕМ ПЕРЕВОДЫ
 
   const handleLogout = () => {
     logout();
@@ -25,10 +27,10 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
-                  Мобильное приложение
+                  {t('dashboard.title')}
                 </h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Главная панель
+                  {t('dashboard.subtitle')}
                 </p>
               </div>
             </div>
@@ -39,14 +41,14 @@ const Dashboard: React.FC = () => {
                   {user?.name || user?.email}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  В сети
+                  {t('dashboard.online')}
                 </p>
               </div>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-600 dark:from-red-600 dark:to-pink-700 text-white rounded-lg hover:from-red-600 hover:to-pink-700 dark:hover:from-red-700 dark:hover:to-pink-800 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-200"
               >
-                Выйти
+                {auth('logout')}
               </button>
             </div>
           </div>
@@ -66,41 +68,40 @@ const Dashboard: React.FC = () => {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-                  Добро пожаловать!
+                  {t('dashboard.welcome.title')}
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Рады видеть вас снова
+                  {t('dashboard.welcome.subtitle')}
                 </p>
               </div>
             </div>
             <p className="text-gray-700 dark:text-gray-300">
-              Вы успешно вошли в систему временной авторизации. 
-              Здесь будет главная страница вашего мобильного приложения.
+              {t('dashboard.welcome.description')}
             </p>
           </div>
 
           {/* Карточка 2: Информация о пользователе */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-              Ваш профиль
+              {t('dashboard.profile.title')}
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Email:</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('dashboard.profile.email')}:</span>
                 <span className="font-medium text-gray-800 dark:text-white">
                   {user?.email}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Имя:</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('dashboard.profile.name')}:</span>
                 <span className="font-medium text-gray-800 dark:text-white">
-                  {user?.name || 'Не указано'}
+                  {user?.name || t('dashboard.profile.notSpecified')}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Статус:</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('dashboard.profile.status')}:</span>
                 <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-xs font-medium rounded-full">
-                  Активен
+                  {t('dashboard.profile.active')}
                 </span>
               </div>
             </div>
@@ -109,17 +110,17 @@ const Dashboard: React.FC = () => {
           {/* Карточка 3: Демо функции */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-              Демо функции
+              {t('dashboard.demo.title')}
             </h3>
             <div className="space-y-3">
               <button className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 dark:hover:from-blue-700 dark:hover:to-indigo-800 transition-all duration-200">
-                Функция 1
+                {t('dashboard.demo.feature1')}
               </button>
               <button className="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-600 dark:from-purple-600 dark:to-pink-700 text-white rounded-lg hover:from-purple-600 hover:to-pink-700 dark:hover:from-purple-700 dark:hover:to-pink-800 transition-all duration-200">
-                Функция 2
+                {t('dashboard.demo.feature2')}
               </button>
               <button className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-teal-600 dark:from-green-600 dark:to-teal-700 text-white rounded-lg hover:from-green-600 hover:to-teal-700 dark:hover:from-green-700 dark:hover:to-teal-800 transition-all duration-200">
-                Функция 3
+                {t('dashboard.demo.feature3')}
               </button>
             </div>
           </div>
@@ -129,16 +130,17 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-semibold mb-2">
-                  Временная система авторизации
+                  {t('dashboard.system.title')}
                 </h3>
                 <p className="text-gray-300 dark:text-gray-400">
-                  Эта система использует localStorage для хранения сессии. 
-                  После реализации бэкенда данные будут храниться в базе данных.
+                  {t('dashboard.system.description')}
                 </p>
               </div>
               <div className="text-right">
                 <div className="text-3xl font-bold mb-1">3</div>
-                <div className="text-gray-400 dark:text-gray-500">тестовых аккаунта</div>
+                <div className="text-gray-400 dark:text-gray-500">
+                  {t('dashboard.system.testAccounts', { count: 3 })}
+                </div>
               </div>
             </div>
             
@@ -150,7 +152,7 @@ const Dashboard: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
-                  <span className="font-medium">Админ</span>
+                  <span className="font-medium">{t('dashboard.system.admin')}</span>
                 </div>
                 <p className="text-sm text-gray-300 dark:text-gray-400">
                   admin@example.com / admin123
@@ -164,7 +166,7 @@ const Dashboard: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9.197h-15" />
                     </svg>
                   </div>
-                  <span className="font-medium">Пользователь</span>
+                  <span className="font-medium">{t('dashboard.system.user')}</span>
                 </div>
                 <p className="text-sm text-gray-300 dark:text-gray-400">
                   user@example.com / user123
@@ -178,7 +180,7 @@ const Dashboard: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="font-medium">Тестовый</span>
+                  <span className="font-medium">{t('dashboard.system.test')}</span>
                 </div>
                 <p className="text-sm text-gray-300 dark:text-gray-400">
                   test@test.com / test123
@@ -195,18 +197,18 @@ const Dashboard: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                © {new Date().getFullYear()} Мобильное приложение. Временная система авторизации.
+                © {new Date().getFullYear()} {t('dashboard.footer.copyright')}
               </p>
             </div>
             <div className="flex space-x-4">
               <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-                Документация
+                {t('dashboard.footer.documentation')}
               </button>
               <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-                Поддержка
+                {t('dashboard.footer.support')}
               </button>
               <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-                О проекте
+                {t('dashboard.footer.about')}
               </button>
             </div>
           </div>

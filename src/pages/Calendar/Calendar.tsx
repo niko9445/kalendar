@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import Header from '../../components/Navigation/Header';
 import BottomNav from '../../components/Navigation/BottomNav';
+import { useTranslation } from '../../i18n/hooks';
 import { useGoals, CalendarEvent } from '../../contexts/GoalsContext';
 import { cn } from '../../utils/cn';
 
 const Calendar: React.FC = () => {
   const { events, deleteEvent, toggleEventComplete } = useGoals();
+  const { t, calendar: calendarT, language } = useTranslation(); // ВЫНЕС language В КОМПОНЕНТ
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const getDaysInMonth = (date: Date) => {
@@ -16,7 +18,7 @@ const Calendar: React.FC = () => {
     return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   };
 
-  const MiniCalendar = () => {
+  const MiniCalendar: React.FC = () => {
     const daysInMonth = getDaysInMonth(currentMonth);
     const firstDay = getFirstDayOfMonth(currentMonth);
     const year = currentMonth.getFullYear();
@@ -43,18 +45,32 @@ const Calendar: React.FC = () => {
       });
     }
 
+    const dayNames = [
+      t('calendar.dayNames.mon'),
+      t('calendar.dayNames.tue'),
+      t('calendar.dayNames.wed'),
+      t('calendar.dayNames.thu'),
+      t('calendar.dayNames.fri'),
+      t('calendar.dayNames.sat'),
+      t('calendar.dayNames.sun'),
+    ];
+
     return (
       <div className="bg-white dark:bg-dark-surface rounded-xl p-4 mb-4 border border-border dark:border-dark-border">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-base font-semibold text-text-primary dark:text-dark-text-primary">
-              {currentMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+              {currentMonth.toLocaleDateString(language === 'ru' ? 'ru-RU' : 'en-US', { 
+                month: 'long', 
+                year: 'numeric' 
+              })}
             </h3>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface dark:hover:bg-dark-surface transition-colors"
+              aria-label={t('calendar.prevMonth')}
             >
               <svg className="w-4 h-4 text-text-secondary dark:text-dark-text-secondary" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -64,11 +80,12 @@ const Calendar: React.FC = () => {
               onClick={() => setCurrentMonth(new Date())}
               className="px-3 py-1.5 text-sm bg-surface dark:bg-dark-surface text-text-primary dark:text-dark-text-primary rounded-lg hover:bg-border dark:hover:bg-dark-border transition-colors"
             >
-              Сегодня
+              {t('calendar.today')}
             </button>
             <button
               onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface dark:hover:bg-dark-surface transition-colors"
+              aria-label={t('calendar.nextMonth')}
             >
               <svg className="w-4 h-4 text-text-secondary dark:text-dark-text-secondary" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -78,7 +95,7 @@ const Calendar: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-7 gap-1 mb-2">
-          {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(day => (
+          {dayNames.map(day => (
             <div key={day} className="text-center">
               <div className="text-xs font-medium text-text-secondary dark:text-dark-text-secondary py-1">
                 {day}
@@ -153,8 +170,9 @@ const Calendar: React.FC = () => {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     const today = new Date().toDateString();
-    if (date.toDateString() === today) return 'Сегодня';
-    return date.toLocaleDateString('ru-RU', {
+    if (date.toDateString() === today) return t('calendar.today');
+    
+    return date.toLocaleDateString(language === 'ru' ? 'ru-RU' : 'en-US', {
       day: 'numeric',
       month: 'short'
     });
@@ -170,8 +188,8 @@ const Calendar: React.FC = () => {
   return (
     <div className="min-h-screen bg-background dark:bg-dark-background pb-20">
       <Header 
-        title="Календарь"
-        subtitle={`${events.length} событий`}
+        title={calendarT('title')}
+        subtitle={t('calendar.eventsCount', { count: events.length })}
       />
 
       <main className="p-3">
@@ -180,7 +198,7 @@ const Calendar: React.FC = () => {
         <div className="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border">
           <div className="px-3 py-3 border-b border-border dark:border-dark-border">
             <span className="text-sm font-medium text-text-primary dark:text-dark-text-primary">
-              События ({events.length})
+              {t('calendar.eventsLabel', { count: events.length })}
             </span>
           </div>
 
@@ -199,9 +217,9 @@ const Calendar: React.FC = () => {
                     });
                     
                     const sign = event.amount >= 0 ? '+' : '';
-                    const amountText = `${sign}${formattedAmount} ${event.currency || 'RUB'}`;
+                    const amountText = `${sign}${formattedAmount} ${event.currency || t('calendar.defaultCurrency')}`;
                     
-                    displayText = event.title && event.title !== 'Транзакция' 
+                    displayText = event.title && event.title !== t('calendar.transaction') 
                       ? `${event.title} - ${amountText}`
                       : amountText;
                   }
@@ -232,6 +250,9 @@ const Calendar: React.FC = () => {
                               ? "bg-primary dark:bg-dark-primary border-primary dark:border-dark-primary" 
                               : "border-border dark:border-dark-border hover:border-primary dark:hover:border-dark-primary"
                           )}
+                          aria-label={event.completed 
+                            ? t('calendar.markIncomplete') 
+                            : t('calendar.markComplete')}
                         >
                           {event.completed && (
                             <svg 
@@ -271,7 +292,8 @@ const Calendar: React.FC = () => {
                           }}
                           onMouseDown={(e) => e.preventDefault()}
                           className="p-1 text-text-tertiary dark:text-dark-text-tertiary hover:text-error dark:hover:text-dark-error active:scale-95 transition-colors"
-                          title="Удалить событие"
+                          title={t('common.delete')}
+                          aria-label={t('common.delete')}
                         >
                           <svg 
                             className="w-3.5 h-3.5" 
@@ -290,7 +312,9 @@ const Calendar: React.FC = () => {
               </div>
             ) : (
               <div className="px-3 py-8 text-center">
-                <p className="text-text-secondary dark:text-dark-text-secondary text-sm">Нет событий</p>
+                <p className="text-text-secondary dark:text-dark-text-secondary text-sm">
+                  {t('calendar.noEvents')}
+                </p>
               </div>
             )}
           </div>

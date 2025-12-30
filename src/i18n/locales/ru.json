@@ -1,0 +1,240 @@
+{
+  "common": {
+    "loading": "Загрузка...",
+    "save": "Сохранить",
+    "saving": "Сохранение...",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "confirm": "Подтвердить",
+    "close": "Закрыть",
+    "back": "Назад"
+  },
+  "auth": {
+    "title": "Вход в систему",
+    "email": "Электронная почта",
+    "password": "Пароль",
+    "login": "Войти",
+    "logout": "Выйти",
+    "welcome": "Добро пожаловать, {{name}}!",
+    "error": "Ошибка авторизации"
+  },
+  "navigation": {
+    "calendar": "Календарь",
+    "goals": "Цели",
+    "add": "Добавить",
+    "settings": "Настройки",
+    "home": "Главная"
+  },
+  "settings": {
+    "title": "Настройки",
+    "management": "Управление приложением",
+    "user": "Пользователь",
+    "account": "Аккаунт",
+    "appearance": "Внешний вид",
+    "theme": "Тема",
+    "themeDescription": "Светлая/Темная",
+    "language": "Язык",
+    "languageDescription": "Русский/Английский",
+    "notifications": "Уведомления",
+    "notificationsDescription": "Push-уведомления",
+    "dangerZone": "Опасная зона",
+    "deleteAllData": "Удалить все данные",
+    "deleteAllDescription": "Цели, события, настройки",
+    "deleteAllConfirm": "Это действие удалит ВСЕ ваши цели и события. Вы уверены?",
+    "allDataDeleted": "Все данные удалены",
+    "logout": "Выйти из аккаунта",
+    "logoutDescription": "Сессия будет завершена",
+    "logoutConfirm": "Вы уверены, что хотите выйти?"
+  },
+  "calendar": {
+    "title": "Календарь",
+    "eventsLabel": "События ({{count}})",
+    "addEvent": "Добавить событие",
+    "noEvents": "Событий нет",
+    "today": "Сегодня",
+    "month": "Месяц",
+    "week": "Неделя",
+    "fullCalendar": {
+      "title": "Общий календарь"
+    },
+    "dayNames": {
+      "sun": "Вс",
+      "mon": "Пн",
+      "tue": "Вт",
+      "wed": "Ср",
+      "thu": "Чт",
+      "fri": "Пт",
+      "sat": "Сб"
+    },
+    "eventsCount": "{{count}} событий",
+    "prevMonth": "Предыдущий месяц",
+    "nextMonth": "Следующий месяц",
+    "noEventsForDay": "Нет событий на этот день",
+    "markComplete": "Отметить выполненным",
+    "markIncomplete": "Отметить невыполненным",
+    "goalCalendar": {
+      "title": "Календарь цели"
+    },
+    "completionDay": "День выполнения",
+    "deleteGoalConfirm": "Вы уверены, что хотите удалить цель \"{{title}}\"? Все связанные события также будут удалены.",
+    "deleteGoalButton": "Удалить цель",
+    "defaultCurrency": "RUB",
+    "transaction": "Транзакция",
+    "hint": "💡 Нажмите на дату дважды - отметить день выполнения, трижды - добавить событие"
+  },
+  "goals": {
+    "title": "Мои цели",
+    "activeGoals": "{{count}} активных целей",
+    "completed": "Выполнено",
+    "goalsCount": "{{count}} целей",
+    "progress": "Прогресс",
+    "percentage": "{{value}}%",
+    "noGoals": "Нет целей",
+    "addFirstGoal": "Добавьте свою первую цель для отслеживания прогресса",
+    "createGoal": "Создать цель",
+    "markComplete": "Отметить выполненной",
+    "unmarkComplete": "Отметить невыполненной"
+  },
+  "addGoalModal": {
+    "title": "Новая цель",
+    "subtitle": "Создайте цель для отслеживания",
+    "goalTitle": "Название цели",
+    "titlePlaceholder": "Например: Изучить английский",
+    "description": "Описание (необязательно)",
+    "descriptionPlaceholder": "Добавьте детали...",
+    "category": "Категория",
+    "selectCategory": "Выберите",
+    "priority": "Приоритет",
+    "startDate": "Начало",
+    "deadline": "Окончание",
+    "createButton": "Создать"
+  },
+  "categories": {
+    "learning": "Обучение",
+    "work": "Работа",
+    "health": "Здоровье",
+    "finance": "Финансы",
+    "personal": "Личное",
+    "project": "Проект",
+    "sport": "Спорт",
+    "hobby": "Хобби"
+  },
+  "priorities": {
+    "low": "Низкий",
+    "medium": "Средний",
+    "high": "Высокий",
+    "short": {
+      "high": "В",
+      "medium": "С",
+      "low": "Н"
+    }
+  },
+  "colors": {
+    "blue": "Синий",
+    "green": "Зеленый",
+    "yellow": "Желтый",
+    "red": "Красный",
+    "purple": "Фиолетовый",
+    "pink": "Розовый"
+  },
+  "eventModal": {
+    "regular": {
+      "title": "Новое событие",
+      "titleInput": "Название события",
+      "titlePlaceholder": "Введите название события"
+    },
+    "finance": {
+      "title": "Новая транзакция",
+      "amountInput": "Сумма",
+      "amountPlaceholder": "0.00",
+      "titleInputOptional": "Название (необязательно)",
+      "titlePlaceholder": "Например: Зарплата, Продукты, Кафе"
+    },
+    "goalLabel": "Цель",
+    "colorLabel": "Цвет события",
+    "addButton": "Добавить",
+    "errors": {
+      "titleRequired": "Пожалуйста, введите название события",
+      "amountRequired": "Пожалуйста, укажите сумму для финансового события"
+    }
+  },
+  "errors": {
+    "required": "Это поле обязательно для заполнения",
+    "invalidEmail": "Неверный формат email",
+    "minLength": "Минимальная длина {{count}} символов",
+    "goalTitleRequired": "Введите название цели",
+    "categoryRequired": "Выберите категорию",
+    "startDateRequired": "Укажите дату начала",
+    "deadlineRequired": "Укажите срок выполнения",
+    "deadlineBeforeStart": "Дата окончания не может быть раньше начала"
+  },
+  "notFound": {
+    "message": "Страница не найдена",
+    "goHome": "На главную"
+  },
+  "dashboard": {
+    "title": "Мобильное приложение",
+    "subtitle": "Главная панель",
+    "online": "В сети",
+    "welcome": {
+        "title": "Добро пожаловать!",
+        "subtitle": "Рады видеть вас снова",
+        "description": "Вы успешно вошли в систему временной авторизации. Здесь будет главная страница вашего мобильного приложения."
+    },
+    "profile": {
+        "title": "Ваш профиль",
+        "email": "Email",
+        "name": "Имя",
+        "notSpecified": "Не указано",
+        "status": "Статус",
+        "active": "Активен"
+    },
+    "demo": {
+        "title": "Демо функции",
+        "feature1": "Функция 1",
+        "feature2": "Функция 2",
+        "feature3": "Функция 3"
+    },
+    "system": {
+        "title": "Временная система авторизации",
+        "description": "Эта система использует localStorage для хранения сессии. После реализации бэкенда данные будут храниться в базе данных.",
+        "testAccounts": "тестовых аккаунта",
+        "admin": "Админ",
+        "user": "Пользователь",
+        "test": "Тестовый"
+    },
+    "footer": {
+        "copyright": "Мобильное приложение. Временная система авторизации.",
+        "documentation": "Документация",
+        "support": "Поддержка",
+        "about": "О проекте"
+    }
+  },
+    "login": {
+    "appTitle": "GoalManager",
+    "appSubtitle": "Управляй своими целями",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Пароль",
+    "showPassword": "Показать пароль",
+    "hidePassword": "Скрыть пароль",
+    "register": "Регистрация",
+    "forgotPassword": "Забыли пароль?",
+    "signingIn": "Вход...",
+    "demoAccounts": "Демо аккаунты",
+    "demo": {
+        "admin": "Админ",
+        "user": "Пользователь",
+        "test": "Тестовый"
+    },
+    "errors": {
+        "fillAllFields": "Заполните все поля",
+        "loginFailed": "Ошибка при входе",
+        "registrationUnavailable": "Регистрация временно недоступна",
+        "forgotPasswordUnavailable": "Восстановление пароля временно недоступна"
+    }
+    },
+    "protectedRoute": {
+    "checkingAuth": "Проверка авторизации..."
+    }
+}

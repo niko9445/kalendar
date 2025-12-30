@@ -1,39 +1,40 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useTranslation } from '../../i18n/hooks'; // ДОБАВИЛ ИМПОРТ
 import Header from '../../components/Navigation/Header';
 import BottomNav from '../../components/Navigation/BottomNav';
+import LanguageSwitcher from '../../components/LanguageSwitcher/LanguageSwitcher'; // ДОБАВИЛ ИМПОРТ
 import { cn } from '../../utils/cn';
 
 const Settings: React.FC = () => {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme, setTheme } = useTheme();
-  const [language, setLanguage] = useState<'ru' | 'en'>('ru');
+  const { theme, toggleTheme } = useTheme();
+  const { t } = useTranslation(); // ДОБАВИЛ ХУК ПЕРЕВОДОВ
   const [notifications, setNotifications] = useState(true);
 
   const handleLogout = () => {
-    if (window.confirm(language === 'ru' ? 'Вы уверены, что хотите выйти?' : 'Are you sure you want to logout?')) {
+    // ЗАМЕНИЛ тернарный оператор на ключ перевода
+    if (window.confirm(t('settings.logoutConfirm'))) {
       logout();
     }
   };
 
   const handleDeleteAllData = () => {
-    if (window.confirm(
-      language === 'ru' 
-        ? 'Это действие удалит ВСЕ ваши цели и события. Вы уверены?' 
-        : 'This will delete ALL your goals and events. Are you sure?'
-    )) {
+    // ЗАМЕНИЛ тернарный оператор на ключ перевода
+    if (window.confirm(t('settings.deleteAllConfirm'))) {
       localStorage.clear();
-      alert(language === 'ru' ? 'Все данные удалены' : 'All data deleted');
+      alert(t('settings.allDataDeleted'));
       window.location.reload();
     }
   };
 
   return (
     <div className="min-h-screen bg-background dark:bg-dark-background pb-20 transition-colors duration-200">
+      {/* ЗАМЕНИЛ language === 'ru' ? "Настройки" : "Settings" на ключи */}
       <Header 
-        title={language === 'ru' ? "Настройки" : "Settings"}
-        subtitle={language === 'ru' ? "Управление приложением" : "App management"}
+        title={t('settings.title')}
+        subtitle={t('settings.management')}
       />
 
       <main className="p-4 space-y-4">
@@ -46,11 +47,13 @@ const Settings: React.FC = () => {
               </span>
             </div>
             <div>
+              {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
               <p className="text-sm font-medium text-text-primary dark:text-dark-text-primary">
-                {user?.email || (language === 'ru' ? 'Пользователь' : 'User')}
+                {user?.email || t('settings.user')}
               </p>
+              {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
               <p className="text-xs text-text-secondary dark:text-dark-text-secondary">
-                {user?.email?.split('@')[1] || (language === 'ru' ? 'Аккаунт' : 'Account')}
+                {user?.email?.split('@')[1] || t('settings.account')}
               </p>
             </div>
           </div>
@@ -59,8 +62,9 @@ const Settings: React.FC = () => {
         {/* Внешний вид */}
         <div className="bg-white dark:bg-dark-surface rounded-xl transition-colors duration-200">
           <div className="px-4 py-3 border-b border-border dark:border-dark-border">
+            {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
             <h3 className="text-sm font-medium text-text-primary dark:text-dark-text-primary">
-              {language === 'ru' ? 'Внешний вид' : 'Appearance'}
+              {t('settings.appearance')}
             </h3>
           </div>
           
@@ -69,11 +73,13 @@ const Settings: React.FC = () => {
             <div className="px-4 py-3">
               <div className="flex items-center justify-between">
                 <div>
+                  {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
                   <p className="text-sm text-text-primary dark:text-dark-text-primary">
-                    {language === 'ru' ? 'Тема' : 'Theme'}
+                    {t('settings.theme')}
                   </p>
+                  {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
                   <p className="text-xs text-text-secondary dark:text-dark-text-secondary mt-0.5">
-                    {language === 'ru' ? 'Светлая/Темная' : 'Light/dark'}
+                    {t('settings.themeDescription')}
                   </p>
                 </div>
                 <button
@@ -93,46 +99,21 @@ const Settings: React.FC = () => {
               </div>
             </div>
 
-            {/* Язык - компактный переключатель */}
+            {/* Язык - УДАЛИЛ старый переключатель, ДОБАВИЛ компонент */}
             <div className="px-4 py-3">
               <div className="flex items-center justify-between">
                 <div>
+                  {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
                   <p className="text-sm text-text-primary dark:text-dark-text-primary">
-                    {language === 'ru' ? 'Язык' : 'Language'}
+                    {t('settings.language')}
                   </p>
+                  {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
                   <p className="text-xs text-text-secondary dark:text-dark-text-secondary mt-0.5">
-                    {language === 'ru' ? 'Русский/Английский' : 'Russian/English'}
+                    {t('settings.languageDescription')}
                   </p>
                 </div>
-                <button
-                  onClick={() => setLanguage(language === 'ru' ? 'en' : 'ru')}
-                  className={cn(
-                    "relative w-12 h-6 rounded-full transition-colors",
-                    language === 'ru' ? "bg-primary dark:bg-dark-primary" : "bg-blue-500 dark:bg-blue-600"
-                  )}
-                >
-                  {/* Флаги внутри переключателя */}
-                  <span className={cn(
-                    "absolute top-1 text-xs transition-opacity duration-300",
-                    language === 'ru' ? "left-1 opacity-100" : "left-7 opacity-0"
-                  )}>
-                    🇷🇺
-                  </span>
-                  <span className={cn(
-                    "absolute top-1 text-xs transition-opacity duration-300",
-                    language === 'en' ? "left-7 opacity-100" : "left-1 opacity-0"
-                  )}>
-                    🇬🇧
-                  </span>
-                  
-                  {/* Белый ползунок */}
-                  <span
-                    className={cn(
-                      "absolute top-1 w-4 h-4 rounded-full bg-white transition-transform shadow-sm",
-                      language === 'ru' ? "left-1" : "left-7"
-                    )}
-                  />
-                </button>
+                {/* ЗАМЕНИЛ кастомную кнопку на компонент LanguageSwitcher */}
+                <LanguageSwitcher compact />
               </div>
             </div>
 
@@ -140,11 +121,13 @@ const Settings: React.FC = () => {
             <div className="px-4 py-3">
               <div className="flex items-center justify-between">
                 <div>
+                  {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
                   <p className="text-sm text-text-primary dark:text-dark-text-primary">
-                    {language === 'ru' ? 'Уведомления' : 'Notifications'}
+                    {t('settings.notifications')}
                   </p>
+                  {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
                   <p className="text-xs text-text-secondary dark:text-dark-text-secondary mt-0.5">
-                    {language === 'ru' ? 'Push-уведомления' : 'Push notifications'}
+                    {t('settings.notificationsDescription')}
                   </p>
                 </div>
                 <button
@@ -169,8 +152,9 @@ const Settings: React.FC = () => {
         {/* Опасная зона */}
         <div className="bg-white dark:bg-dark-surface rounded-xl border border-error/20 dark:border-red-900/50 transition-colors duration-200">
           <div className="px-4 py-3 border-b border-border dark:border-dark-border">
+            {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
             <h3 className="text-sm font-medium text-error dark:text-red-400">
-              {language === 'ru' ? 'Опасная зона' : 'Danger Zone'}
+              {t('settings.dangerZone')}
             </h3>
           </div>
           
@@ -187,11 +171,13 @@ const Settings: React.FC = () => {
                   </svg>
                 </div>
                 <div>
+                  {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
                   <p className="text-sm font-medium text-error dark:text-red-400">
-                    {language === 'ru' ? 'Удалить все данные' : 'Delete all data'}
+                    {t('settings.deleteAllData')}
                   </p>
+                  {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
                   <p className="text-xs text-error/70 dark:text-red-400/70 mt-0.5">
-                    {language === 'ru' ? 'Цели, события, настройки' : 'Goals, events, settings'}
+                    {t('settings.deleteAllDescription')}
                   </p>
                 </div>
               </div>
@@ -209,11 +195,13 @@ const Settings: React.FC = () => {
                   </svg>
                 </div>
                 <div>
+                  {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
                   <p className="text-sm font-medium text-error dark:text-red-400">
-                    {language === 'ru' ? 'Выйти из аккаунта' : 'Logout'}
+                    {t('settings.logout')}
                   </p>
+                  {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
                   <p className="text-xs text-error/70 dark:text-red-400/70 mt-0.5">
-                    {language === 'ru' ? 'Сессия будет завершена' : 'Session will be terminated'}
+                    {t('settings.logoutDescription')}
                   </p>
                 </div>
               </div>

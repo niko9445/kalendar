@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from '../../i18n/hooks'; // ДОБАВИЛ ИМПОРТ
 import { cn } from '../../utils/cn';
 
 interface NavItem {
@@ -12,11 +13,12 @@ interface NavItem {
 const BottomNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { nav } = useTranslation(); // ИСПОЛЬЗУЕМ ПЕРЕВОДЫ
   
   const navItems: NavItem[] = [
     {
       id: 'goals',
-      label: 'Цели',
+      label: nav('goals'), // ИСПОЛЬЗУЕМ ПЕРЕВОД
       icon: (isActive) => (
         <svg 
           className="w-5 h-5" 
@@ -32,7 +34,7 @@ const BottomNav: React.FC = () => {
     },
     {
       id: 'calendar',
-      label: 'Календарь',
+      label: nav('calendar'), // ИСПОЛЬЗУЕМ ПЕРЕВОД
       icon: (isActive) => (
         <svg 
           className="w-5 h-5" 
@@ -48,7 +50,7 @@ const BottomNav: React.FC = () => {
     },
     {
       id: 'settings',
-      label: 'Настройки',
+      label: nav('settings'), // ИСПОЛЬЗУЕМ ПЕРЕВОД
       icon: (isActive) => (
         <svg 
           className="w-5 h-5" 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '../../../utils/cn';
+import { useTranslation } from '../../../i18n/hooks';
 
 interface AddGoalModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
   onClose, 
   onSave 
 }) => {
+  const { t, errors: errorsT } = useTranslation();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -24,20 +26,20 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const categories = [
-    'Обучение',
-    'Работа',
-    'Здоровье',
-    'Финансы',
-    'Личное',
-    'Проект',
-    'Спорт',
-    'Хобби',
+    t('categories.learning'),
+    t('categories.work'),
+    t('categories.health'),
+    t('categories.finance'),
+    t('categories.personal'),
+    t('categories.project'),
+    t('categories.sport'),
+    t('categories.hobby'),
   ];
 
   const priorities = [
-    { value: 'low', label: 'Низкий' },
-    { value: 'medium', label: 'Средний' },
-    { value: 'high', label: 'Высокий' },
+    { value: 'low', label: t('priorities.low') },
+    { value: 'medium', label: t('priorities.medium') },
+    { value: 'high', label: t('priorities.high') },
   ];
 
   // Блокируем скролл фона при открытии модалки
@@ -71,27 +73,27 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
     const newErrors: Record<string, string> = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = 'Введите название цели';
+      newErrors.title = t('errors.goalTitleRequired');
     } else if (formData.title.length < 3) {
-      newErrors.title = 'Минимум 3 символа';
+      newErrors.title = t('errors.minLength', { count: 3 });
     }
 
     if (!formData.category) {
-      newErrors.category = 'Выберите категорию';
+      newErrors.category = t('errors.categoryRequired');
     }
 
     if (!formData.startDate) {
-      newErrors.startDate = 'Укажите дату начала';
+      newErrors.startDate = t('errors.startDateRequired');
     }
 
     if (!formData.deadline) {
-      newErrors.deadline = 'Укажите срок выполнения';
+      newErrors.deadline = t('errors.deadlineRequired');
     } else if (formData.startDate && formData.deadline) {
       const startDate = new Date(formData.startDate);
       const deadlineDate = new Date(formData.deadline);
       
       if (deadlineDate < startDate) {
-        newErrors.deadline = 'Дата окончания не может быть раньше начала';
+        newErrors.deadline = t('errors.deadlineBeforeStart');
       }
     }
 
@@ -166,10 +168,10 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-text-primary dark:text-dark-text-primary">
-                  Новая цель
+                  {t('addGoalModal.title')}
                 </h2>
                 <p className="text-xs text-text-secondary dark:text-dark-text-secondary mt-0.5">
-                  Создайте цель для отслеживания
+                  {t('addGoalModal.subtitle')}
                 </p>
               </div>
               <button
@@ -195,21 +197,21 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
               {/* Название цели */}
               <div>
                 <label className="block text-sm font-medium text-text-primary dark:text-dark-text-primary mb-1">
-                  Название цели *
+                  {t('addGoalModal.goalTitle')} *
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => handleChange('title', e.target.value)}
                   className={cn(
-                    "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",
+                    "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm placeholder:text-xs",
                     "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
-                    "min-h-[40px] dark:bg-dark-surface",
+                    "h-10 dark:bg-dark-surface", // Уменьшил высоту с min-h-[40px] на h-10
                     errors.title 
                       ? "border-error dark:border-dark-error" 
                       : "border-border dark:border-dark-border"
                   )}
-                  placeholder="Например: Изучить английский"
+                  placeholder={t('addGoalModal.titlePlaceholder')}
                   autoFocus
                 />
                 {errors.title && (
@@ -220,51 +222,64 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
               {/* Описание */}
               <div>
                 <label className="block text-sm font-medium text-text-primary dark:text-dark-text-primary mb-1">
-                  Описание (необязательно)
+                  {t('addGoalModal.description')}
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
-                  className="w-full px-3 py-2 border border-border dark:border-dark-border rounded-md text-text-primary dark:text-dark-text-primary text-sm
+                  className="w-full px-3 py-2 border border-border dark:border-dark-border rounded-md text-text-primary dark:text-dark-text-primary text-sm placeholder:text-xs
                            focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500
-                           min-h-[80px] resize-none dark:bg-dark-surface"
-                  placeholder="Добавьте детали..."
+                           min-h-[60px] resize-none dark:bg-dark-surface" // Уменьшил высоту с min-h-[80px] на min-h-[60px]
+                  placeholder={t('addGoalModal.descriptionPlaceholder')}
                 />
               </div>
 
               {/* Категория */}
               <div>
                 <label className="block text-sm font-medium text-text-primary dark:text-dark-text-primary mb-1">
-                  Категория *
+                  {t('addGoalModal.category')} *
                 </label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => handleChange('category', e.target.value)}
-                  className={cn(
-                    "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",
-                    "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
-                    "min-h-[40px] dark:bg-dark-surface",
-                    errors.category 
-                      ? "border-error dark:border-dark-error" 
-                      : "border-border dark:border-dark-border"
-                  )}
-                >
-                  <option value="">Выберите</option>
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={formData.category}
+                    onChange={(e) => handleChange('category', e.target.value)}
+                    className={cn(
+                      "w-full px-3 py-2 pr-10 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",
+                      "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
+                      "h-10 dark:bg-dark-surface",
+                      "appearance-none bg-no-repeat bg-right",
+                      "bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')]",
+                      "dark:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')]",
+                      "bg-[position:right_0.5rem_center] bg-[length:16px_16px]",
+                      errors.category 
+                        ? "border-error dark:border-dark-error" 
+                        : "border-border dark:border-dark-border"
+                    )}
+                    style={{
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 0.75rem center',
+                      backgroundSize: '16px 12px',
+                      paddingRight: '2.5rem',
+                    }}
+                  >
+                    <option value="">{t('addGoalModal.selectCategory')}</option>
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                  {/* УДАЛИЛ этот div с кастомной стрелкой - она теперь в background */}
+                </div>
                 {errors.category && (
-                  <p className="mt-1 text-xs text-error dark:text-dark-error">{errors.category}</p>
+                  <p className="mt-1 text-xs text-error dark:text-dark-text-error">{errors.category}</p>
                 )}
               </div>
 
               {/* Приоритет */}
               <div>
                 <label className="block text-sm font-medium text-text-primary dark:text-dark-text-primary mb-1">
-                  Приоритет
+                  {t('addGoalModal.priority')}
                 </label>
                 <div className="flex gap-2">
                   {priorities.map((priority) => (
@@ -274,7 +289,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                       onClick={() => handleChange('priority', priority.value)}
                       className={cn(
                         "flex-1 px-3 py-2 text-sm font-medium rounded-md border transition-colors",
-                        "min-h-[40px]",
+                        "h-10", // Уменьшил высоту с min-h-[40px] на h-10
                         formData.priority === priority.value
                           ? "border-blue-500 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
                           : "border-border dark:border-dark-border text-text-secondary dark:text-dark-text-secondary hover:border-border-light dark:hover:border-dark-border-light"
@@ -290,7 +305,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-text-primary dark:text-dark-text-primary mb-1">
-                    Начало *
+                    {t('addGoalModal.startDate')} *
                   </label>
                   <div className="relative">
                     <input
@@ -302,7 +317,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                       className={cn(
                         "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",
                         "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
-                        "appearance-none min-h-[40px] dark:bg-dark-surface",
+                        "appearance-none h-10 dark:bg-dark-surface", // Уменьшил высоту
                         errors.startDate 
                           ? "border-error dark:border-dark-error" 
                           : "border-border dark:border-dark-border"
@@ -316,7 +331,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-text-primary dark:text-dark-text-primary mb-1">
-                    Окончание *
+                    {t('addGoalModal.deadline')} *
                   </label>
                   <div className="relative">
                     <input
@@ -328,7 +343,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                       className={cn(
                         "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",
                         "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
-                        "appearance-none min-h-[40px] dark:bg-dark-surface",
+                        "appearance-none h-10 dark:bg-dark-surface", // Уменьшил высоту
                         errors.deadline 
                           ? "border-error dark:border-dark-error" 
                           : "border-border dark:border-dark-border"
@@ -355,7 +370,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                 className="flex-1 py-2.5 border border-border dark:border-dark-border text-text-secondary dark:text-dark-text-secondary 
                          font-medium rounded-lg hover:border-border-light dark:hover:border-dark-border-light transition-colors text-sm"
               >
-                Отмена
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -363,7 +378,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                 className="flex-1 py-2.5 bg-blue-600 dark:bg-blue-600 text-white font-medium 
                          rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors text-sm"
               >
-                Создать
+                {t('addGoalModal.createButton')}
               </button>
             </div>
           </div>

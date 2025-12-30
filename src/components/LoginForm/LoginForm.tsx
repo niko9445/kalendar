@@ -1,6 +1,7 @@
 import React, { useState, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTranslation } from '../../i18n/hooks'; // ДОБАВИЛ ИМПОРТ
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -12,6 +13,7 @@ const LoginForm: React.FC = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { t, auth, errors: errorsT } = useTranslation(); // ИСПОЛЬЗУЕМ ПЕРЕВОДЫ
 
   useEffect(() => {
     setMounted(true);
@@ -23,7 +25,7 @@ const LoginForm: React.FC = () => {
     setError('');
     
     if (!email || !password) {
-      setError('Заполните все поля');
+      setError(t('login.errors.fillAllFields'));
       return;
     }
     
@@ -34,7 +36,7 @@ const LoginForm: React.FC = () => {
     if (result.success) {
       navigate('/goals');
     } else {
-      setError(result.message || 'Ошибка при входе');
+      setError(result.message || t('login.errors.loginFailed'));
     }
     
     setLoading(false);
@@ -57,6 +59,12 @@ const LoginForm: React.FC = () => {
     }
     setError('');
   };
+
+  const demoAccounts = [
+    { type: 'admin' as const, label: t('login.demo.admin') },
+    { type: 'user' as const, label: t('login.demo.user') },
+    { type: 'test' as const, label: t('login.demo.test') },
+  ];
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 overflow-hidden overscroll-none">
@@ -128,7 +136,7 @@ const LoginForm: React.FC = () => {
         }
         
         .dark .icon-eye-off::before {
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21'/%3E%3C/svg%3E");
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox="0 0 24 24" fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21'/%3E%3C/svg%3E");
         }
         
         /* Спиннер для кнопки загрузки */
@@ -161,10 +169,10 @@ const LoginForm: React.FC = () => {
           <div className="relative mb-8">
             <div className="relative z-20">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
-                GoalManager
+                {t('login.appTitle')}
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Управляй своими целями
+                {t('login.appSubtitle')}
               </p>
               
               {/* Декоративная линия */}
@@ -185,7 +193,7 @@ const LoginForm: React.FC = () => {
                        focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500
                        dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-500
                        transition-all duration-300 hover:border-blue-400"
-              placeholder="Email"
+              placeholder={t('login.emailPlaceholder')}
               required
             />
             <div className="icon-email"></div>
@@ -201,7 +209,7 @@ const LoginForm: React.FC = () => {
                        focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500
                        dark:bg-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-500
                        transition-all duration-300 hover:border-blue-400"
-              placeholder="Пароль"
+              placeholder={t('login.passwordPlaceholder')}
               required
             />
             <div className="icon-password"></div>
@@ -210,7 +218,7 @@ const LoginForm: React.FC = () => {
               onClick={() => setShowPassword(!showPassword)}
               className="eye-button absolute inset-y-0 right-0 pr-3 flex items-center transition-colors duration-300"
               style={{ transform: 'translateY(-50%)', top: '50%' }}
-              aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+              aria-label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
             >
               <span className={showPassword ? "icon-eye-off" : "icon-eye"}></span>
             </button>
@@ -221,16 +229,17 @@ const LoginForm: React.FC = () => {
             <button
               type="button"
               className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-300"
-              onClick={() => alert('Регистрация временно недоступна')}
+              onClick={() => alert(t('login.registrationUnavailable'))}
             >
-              Регистрация
+              {t('login.register')}
             </button>
             
             <button
               type="button"
               className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-300"
+              onClick={() => alert(t('login.forgotPasswordUnavailable'))}
             >
-              Забыли пароль?
+              {t('login.forgotPassword')}
             </button>
           </div>
 
@@ -255,29 +264,31 @@ const LoginForm: React.FC = () => {
               {loading ? (
                 <>
                   <div className="spinner mr-2"></div>
-                  Вход...
+                  {t('login.signingIn')}
                 </>
-              ) : 'Войти'}
+              ) : auth('login')}
             </span>
           </button>
         </form>
 
         {/* Демо аккаунты */}
         <div className={`mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 transition-all duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-3">Демо аккаунты:</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-3">
+            {t('login.demoAccounts')}:
+          </p>
           
           <div className="grid grid-cols-3 gap-2">
-            {['Админ', 'Пользователь', 'Тестовый'].map((label, index) => (
+            {demoAccounts.map((account) => (
               <button
-                key={label}
+                key={account.type}
                 type="button"
-                onClick={() => handleDemoLogin(['admin', 'user', 'test'][index] as any)}
+                onClick={() => handleDemoLogin(account.type)}
                 className="px-2 py-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 
                          rounded-lg text-xs hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20
                          transition-all duration-300 transform hover:scale-[1.05] active:scale-95
                          hover:text-blue-600 dark:hover:text-blue-400"
               >
-                {label}
+                {account.label}
               </button>
             ))}
           </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../../../utils/cn';
+import { useTranslation } from '../../../i18n/hooks'; // ДОБАВИЛ ИМПОРТ
 import GoalCalendar from './GoalCalendar';
 import { Goal, CalendarEvent } from '../../../contexts/GoalsContext';
 
@@ -26,12 +27,23 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
   onEventDelete,
   onEventToggleComplete,
 }) => {
+  const { t } = useTranslation(); // ИСПОЛЬЗУЕМ ПЕРЕВОДЫ
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high': return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300';
       case 'medium': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300';
       case 'low': return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
       default: return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300';
+    }
+  };
+
+  const getPriorityLabel = (priority: string) => {
+    switch (priority) {
+      case 'high': return t('priorities.short.high');
+      case 'medium': return t('priorities.short.medium');
+      case 'low': return t('priorities.short.low');
+      default: return '';
     }
   };
 
@@ -45,7 +57,7 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
   };
 
   const regularEvents = events.filter(event => 
-    event.goalId === goal.id && event.title !== 'День выполнения'
+    event.goalId === goal.id && event.title !== t('calendar.completionDay')
   );
   
   const completedEvents = regularEvents.filter(e => e.completed).length;
@@ -75,6 +87,9 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
                   ? "bg-primary dark:bg-dark-primary border-primary dark:border-dark-primary" 
                   : "border-border dark:border-dark-border hover:border-primary dark:hover:border-dark-primary"
               )}
+              aria-label={goal.completed 
+                ? t('goals.unmarkComplete') 
+                : t('goals.markComplete')}
             >
               {goal.completed && (
                 <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -96,7 +111,7 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
                   "px-2 py-0.5 rounded-full text-xs font-medium ml-2 flex-shrink-0",
                   getPriorityColor(goal.priority)
                 )}>
-                  {goal.priority === 'high' ? 'В' : goal.priority === 'medium' ? 'С' : 'Н'}
+                  {getPriorityLabel(goal.priority)}
                 </span>
               </div>
               
@@ -117,7 +132,9 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
                       style={{ width: `${goal.progress}%` }}
                     />
                   </div>
-                  <span className="text-xs font-medium text-text-secondary dark:text-dark-text-secondary">{goal.progress}%</span>
+                  <span className="text-xs font-medium text-text-secondary dark:text-dark-text-secondary">
+                    {goal.progress}%
+                  </span>
                 </div>
                 
                 {/* Даты в формате 01.01.25 */}
@@ -126,7 +143,9 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
                     <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span className="font-medium">{formatDate(goal.startDate)} - {formatDate(goal.deadline)}</span>
+                    <span className="font-medium">
+                      {formatDate(goal.startDate)} - {formatDate(goal.deadline)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -159,7 +178,9 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
                 <svg className="w-3 h-3 mr-1 text-text-secondary dark:text-dark-text-secondary" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.801 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.801 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
                 </svg>
-                <span className="text-text-secondary dark:text-dark-text-secondary">{completedEvents}/{totalEvents}</span>
+                <span className="text-text-secondary dark:text-dark-text-secondary">
+                  {completedEvents}/{totalEvents}
+                </span>
               </div>
             )}
           </div>

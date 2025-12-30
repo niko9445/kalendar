@@ -1,0 +1,240 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "confirm": "Confirm",
+    "close": "Close",
+    "back": "Back"
+  },
+  "auth": {
+    "title": "Login",
+    "email": "Email",
+    "password": "Password",
+    "login": "Sign In",
+    "logout": "Logout",
+    "welcome": "Welcome, {{name}}!",
+    "error": "Authorization error"
+  },
+  "navigation": {
+    "calendar": "Calendar",
+    "goals": "Goals",
+    "add": "Add",
+    "settings": "Settings",
+    "home": "Home"
+  },
+  "settings": {
+    "title": "Settings",
+    "management": "App management",
+    "user": "User",
+    "account": "Account",
+    "appearance": "Appearance",
+    "theme": "Theme",
+    "themeDescription": "Light/dark",
+    "language": "Language",
+    "languageDescription": "Russian/English",
+    "notifications": "Notifications",
+    "notificationsDescription": "Push notifications",
+    "dangerZone": "Danger Zone",
+    "deleteAllData": "Delete all data",
+    "deleteAllDescription": "Goals, events, settings",
+    "deleteAllConfirm": "This will delete ALL your goals and events. Are you sure?",
+    "allDataDeleted": "All data deleted",
+    "logout": "Logout",
+    "logoutDescription": "Session will be terminated",
+    "logoutConfirm": "Are you sure you want to logout?"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "addEvent": "Add event",
+    "eventsLabel": "Events ({{count}})",
+    "noEvents": "No events",
+    "today": "Today",
+    "month": "Month",
+    "week": "Week",
+    "fullCalendar": {
+      "title": "Full Calendar"
+    },
+    "dayNames": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "eventsCount": "{{count}} events",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "noEventsForDay": "No events for this day",
+    "markComplete": "Mark as complete",
+    "markIncomplete": "Mark as incomplete",
+    "goalCalendar": {
+      "title": "Goal Calendar"
+    },
+    "completionDay": "Completion Day",
+    "deleteGoalConfirm": "Are you sure you want to delete the goal \"{{title}}\"? All related events will also be deleted.",
+    "deleteGoalButton": "Delete Goal",
+    "defaultCurrency": "RUB",
+    "transaction": "Transaction",
+    "hint": "💡 Click on a date twice - mark completion day, three times - add event"
+  },
+  "goals": {
+    "title": "My Goals",
+    "activeGoals": "{{count}} active goals",
+    "completed": "Completed",
+    "goalsCount": "{{count}} goals",
+    "progress": "Progress",
+    "percentage": "{{value}}%",
+    "noGoals": "No goals",
+    "addFirstGoal": "Add your first goal to track progress",
+    "createGoal": "Create goal",
+    "markComplete": "Mark as complete",
+    "unmarkComplete": "Mark as incomplete"
+  },
+  "addGoalModal": {
+    "title": "New Goal",
+    "subtitle": "Create a goal to track",
+    "goalTitle": "Goal Title",
+    "titlePlaceholder": "e.g., Learn English",
+    "description": "Description (optional)",
+    "descriptionPlaceholder": "Add details...",
+    "category": "Category",
+    "selectCategory": "Select",
+    "priority": "Priority",
+    "startDate": "Start Date",
+    "deadline": "Deadline",
+    "createButton": "Create"
+  },
+  "categories": {
+    "learning": "Learning",
+    "work": "Work",
+    "health": "Health",
+    "finance": "Finance",
+    "personal": "Personal",
+    "project": "Project",
+    "sport": "Sport",
+    "hobby": "Hobby"
+  },
+  "priorities": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "short": {
+      "high": "H",
+      "medium": "M",
+      "low": "L"
+    }
+  },
+  "colors": {
+    "blue": "Blue",
+    "green": "Green",
+    "yellow": "Yellow",
+    "red": "Red",
+    "purple": "Purple",
+    "pink": "Pink"
+  },
+  "eventModal": {
+    "regular": {
+      "title": "New Event",
+      "titleInput": "Event Title",
+      "titlePlaceholder": "Enter event title"
+    },
+    "finance": {
+      "title": "New Transaction",
+      "amountInput": "Amount",
+      "amountPlaceholder": "0.00",
+      "titleInputOptional": "Title (optional)",
+      "titlePlaceholder": "e.g., Salary, Groceries, Cafe"
+    },
+    "goalLabel": "Goal",
+    "colorLabel": "Event Color",
+    "addButton": "Add",
+    "errors": {
+      "titleRequired": "Please enter event title",
+      "amountRequired": "Please specify amount for financial event"
+    }
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email format",
+    "minLength": "Minimum length is {{count}} characters",
+    "goalTitleRequired": "Enter goal title",
+    "categoryRequired": "Select category",
+    "startDateRequired": "Select start date",
+    "deadlineRequired": "Select deadline",
+    "deadlineBeforeStart": "Deadline cannot be before start date"
+  },
+  "notFound": {
+    "message": "Page not found",
+    "goHome": "Go home"
+  },
+    "dashboard": {
+    "title": "Mobile Application",
+    "subtitle": "Dashboard",
+    "online": "Online",
+    "welcome": {
+        "title": "Welcome!",
+        "subtitle": "Good to see you again",
+        "description": "You have successfully logged into the temporary authorization system. This will be the main page of your mobile application."
+    },
+    "profile": {
+        "title": "Your Profile",
+        "email": "Email",
+        "name": "Name",
+        "notSpecified": "Not specified",
+        "status": "Status",
+        "active": "Active"
+    },
+    "demo": {
+        "title": "Demo Features",
+        "feature1": "Feature 1",
+        "feature2": "Feature 2",
+        "feature3": "Feature 3"
+    },
+    "system": {
+        "title": "Temporary Authorization System",
+        "description": "This system uses localStorage to store sessions. After backend implementation, data will be stored in the database.",
+        "testAccounts": "test accounts",
+        "admin": "Admin",
+        "user": "User",
+        "test": "Test"
+    },
+    "footer": {
+        "copyright": "Mobile Application. Temporary authorization system.",
+        "documentation": "Documentation",
+        "support": "Support",
+        "about": "About"
+    }
+  },
+    "login": {
+    "appTitle": "GoalManager",
+    "appSubtitle": "Manage your goals",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "register": "Register",
+    "forgotPassword": "Forgot password?",
+    "signingIn": "Signing in...",
+    "demoAccounts": "Demo accounts",
+    "demo": {
+        "admin": "Admin",
+        "user": "User",
+        "test": "Test"
+    },
+    "errors": {
+        "fillAllFields": "Please fill all fields",
+        "loginFailed": "Login failed",
+        "registrationUnavailable": "Registration temporarily unavailable",
+        "forgotPasswordUnavailable": "Password recovery temporarily unavailable"
+    }
+    },
+    "protectedRoute": {
+    "checkingAuth": "Checking authorization..."
+    }
+}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from '../i18n/hooks'; // ДОБАВИЛ ИМПОРТ
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo = '/login' 
 }) => {
   const { isAuthenticated, loading } = useAuth();
+  const { t } = useTranslation(); // ИСПОЛЬЗУЕМ ПЕРЕВОДЫ
 
   if (loading) {
     // Можно добавить красивый лоадер
@@ -19,7 +21,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       <div className="min-h-screen flex items-center justify-center bg-background dark:bg-dark-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 dark:border-dark-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Проверка авторизации...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">
+            {t('protectedRoute.checkingAuth')}
+          </p>
         </div>
       </div>
     );

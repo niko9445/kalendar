@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { cn } from '../../../utils/cn';
+import { useTranslation } from '../../../i18n/hooks'; // ДОБАВИЛ ИМПОРТ
 import GoalEventModal from './GoalEventModal';
 
 interface CalendarEvent {
@@ -26,6 +27,7 @@ const FullCalendarView: React.FC<FullCalendarViewProps> = ({
   onEventDelete,
   onEventToggleComplete,
 }) => {
+  const { t } = useTranslation(); // ИСПОЛЬЗУЕМ ПЕРЕВОДЫ
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
@@ -48,7 +50,15 @@ const FullCalendarView: React.FC<FullCalendarViewProps> = ({
   };
 
   const getDayName = (dayIndex: number) => {
-    const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+    const days = [
+      t('calendar.dayNames.sun'),
+      t('calendar.dayNames.mon'),
+      t('calendar.dayNames.tue'),
+      t('calendar.dayNames.wed'),
+      t('calendar.dayNames.thu'),
+      t('calendar.dayNames.fri'),
+      t('calendar.dayNames.sat'),
+    ];
     return days[dayIndex];
   };
 
@@ -128,11 +138,12 @@ const FullCalendarView: React.FC<FullCalendarViewProps> = ({
       {/* Заголовок общего календаря */}
       <div className="flex justify-between items-center mb-6">
         <div>
+          {/* ИСПОЛЬЗУЕМ ПЕРЕВОД */}
           <h3 className="text-lg font-medium text-text-primary dark:text-dark-text-primary">
-            Общий календарь
+            {t('calendar.fullCalendar.title')}
           </h3>
           <p className="text-sm text-text-secondary dark:text-dark-text-secondary">
-            {getMonthName(currentDate)} • {events.length} событий
+            {getMonthName(currentDate)} • {t('calendar.eventsCount', { count: events.length })}
           </p>
         </div>
         
@@ -140,6 +151,7 @@ const FullCalendarView: React.FC<FullCalendarViewProps> = ({
           <button
             onClick={handlePrevMonth}
             className="p-2 text-text-secondary dark:text-dark-text-secondary hover:text-text-primary dark:hover:text-dark-text-primary hover:bg-surface dark:hover:bg-dark-surface rounded-md transition-colors"
+            aria-label={t('calendar.prevMonth')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -150,12 +162,13 @@ const FullCalendarView: React.FC<FullCalendarViewProps> = ({
             onClick={handleToday}
             className="px-4 py-2 bg-primary dark:bg-dark-primary text-white text-sm font-medium rounded-md hover:bg-primary-dark dark:hover:bg-dark-primary-dark transition-colors"
           >
-            Сегодня
+            {t('calendar.today')}
           </button>
           
           <button
             onClick={handleNextMonth}
             className="p-2 text-text-secondary dark:text-dark-text-secondary hover:text-text-primary dark:hover:text-dark-text-primary hover:bg-surface dark:hover:bg-dark-surface rounded-md transition-colors"
+            aria-label={t('calendar.nextMonth')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -233,20 +246,22 @@ const FullCalendarView: React.FC<FullCalendarViewProps> = ({
                 })}
               </h4>
               <p className="text-sm text-text-secondary dark:text-dark-text-secondary">
-                {selectedDateEvents.length} событий
+                {t('calendar.eventsCount', { count: selectedDateEvents.length })}
               </p>
             </div>
             <button
               onClick={() => setShowEventModal(true)}
               className="px-3 py-1.5 text-sm bg-primary dark:bg-dark-primary text-white rounded-md hover:bg-primary-dark dark:hover:bg-dark-primary-dark transition-colors"
             >
-              + Добавить
+              {t('calendar.addEvent')}
             </button>
           </div>
 
           {selectedDateEvents.length === 0 ? (
             <div className="text-center py-6 border border-border dark:border-dark-border rounded-md">
-              <p className="text-text-secondary dark:text-dark-text-secondary">Нет событий на этот день</p>
+              <p className="text-text-secondary dark:text-dark-text-secondary">
+                {t('calendar.noEventsForDay')}
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -283,6 +298,9 @@ const FullCalendarView: React.FC<FullCalendarViewProps> = ({
                                 ? "text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20" 
                                 : "text-text-secondary dark:text-dark-text-secondary hover:bg-surface dark:hover:bg-dark-surface"
                             )}
+                            aria-label={event.completed 
+                              ? t('calendar.markIncomplete') 
+                              : t('calendar.markComplete')}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -291,6 +309,7 @@ const FullCalendarView: React.FC<FullCalendarViewProps> = ({
                           <button
                             onClick={() => onEventDelete(event.id)}
                             className="p-1.5 text-error dark:text-dark-error hover:text-error-dark dark:hover:text-dark-error-dark hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                            aria-label={t('common.delete')}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
