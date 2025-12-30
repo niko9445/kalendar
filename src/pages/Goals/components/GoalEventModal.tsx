@@ -45,22 +45,24 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
     { value: 'bg-pink-500', label: t('colors.pink'), hex: '#ec4899' },
   ];
 
-  // Функция для осветления цвета (добавить в начало компонента, после useState)
+  const CURRENCY_OPTIONS = [
+    { value: 'RUB', label: 'RUB' },
+    { value: 'USD', label: 'USD' },
+    { value: 'BYN', label: 'BYN' },
+  ];
+
+  // Функция для осветления цвета
   const brightenColor = (hex: string, percent: number): string => {
-    // Убираем # если есть
     let color = hex.replace('#', '');
     
-    // Если сокращенный формат (3 символа), расширяем до 6
     if (color.length === 3) {
       color = color.split('').map(c => c + c).join('');
     }
     
-    // Конвертируем в RGB
     const r = parseInt(color.substr(0, 2), 16);
     const g = parseInt(color.substr(2, 2), 16);
     const b = parseInt(color.substr(4, 2), 16);
     
-    // Осветляем каждый канал
     const brighten = (channel: number) => {
       return Math.min(255, Math.round(channel + (255 - channel) * (percent / 100)));
     };
@@ -69,7 +71,6 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
     const newG = brighten(g);
     const newB = brighten(b);
     
-    // Конвертируем обратно в HEX
     const toHex = (n: number) => {
       const hex = n.toString(16);
       return hex.length === 1 ? '0' + hex : hex;
@@ -77,13 +78,6 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
     
     return `#${toHex(newR)}${toHex(newG)}${toHex(newB)}`;
   };
-  
-
-  const CURRENCY_OPTIONS = [
-    { value: 'RUB', label: 'RUB' },
-    { value: 'USD', label: 'USD' },
-    { value: 'BYN', label: 'BYN' },
-  ];
 
   useEffect(() => {
     if (isOpen) {
@@ -150,36 +144,35 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div 
-        className="absolute inset-0 bg-black/50 dark:bg-black/70"
+        className="absolute inset-0 bg-black/40 dark:bg-black/60"
         onClick={onClose}
       />
       
-      <div className="relative bg-white dark:bg-dark-surface rounded-2xl shadow-xl w-full max-w-md mx-auto">
-        {/* Шапка */}
-        <div className="px-6 py-4 border-b border-border dark:border-dark-border">
+      <div className="relative bg-white dark:bg-dark-surface rounded-xl shadow-xl w-full max-w-md">
+        {/* Заголовок */}
+        <div className="px-4 py-3 border-b border-border dark:border-dark-border">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-text-primary dark:text-dark-text-primary">
+              <h2 className="text-lg font-semibold text-text-primary dark:text-dark-text-primary">
                 {isFinanceCategory 
                   ? t('eventModal.finance.title') 
                   : t('eventModal.regular.title')}
-              </h3>
-              <div className="flex items-center gap-2 mt-1">
-                <p className="text-sm text-text-secondary dark:text-dark-text-secondary">
+              </h2>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-xs text-text-secondary dark:text-dark-text-secondary">
                   {formattedDate}
                 </p>
                 <span className="text-text-secondary/50 dark:text-dark-text-secondary/50">•</span>
-                <p className="text-sm text-text-secondary dark:text-dark-text-secondary truncate max-w-[120px]">
+                <p className="text-xs text-text-secondary dark:text-dark-text-secondary truncate max-w-[120px]">
                   {goalTitle}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-text-secondary dark:text-dark-text-secondary hover:text-text-primary dark:hover:text-dark-text-primary hover:bg-surface dark:hover:bg-dark-surface rounded-lg transition-colors active:scale-95"
-              aria-label={t('common.close')}
+              className="p-1 text-text-secondary dark:text-dark-text-secondary hover:text-text-primary dark:hover:text-dark-text-primary hover:bg-surface dark:hover:bg-dark-surface rounded-md transition-colors"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -187,20 +180,24 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
         </div>
 
         {/* Форма */}
-        <form onSubmit={handleSubmit} className="px-6 py-4">
-          <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="p-4">
+          <div className="space-y-3">
             {/* Название события */}
             {!isFinanceCategory && (
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-text-primary dark:text-dark-text-primary">
+              <div>
+                <label className="block text-sm font-medium text-text-primary dark:text-dark-text-primary mb-1">
                   {t('eventModal.regular.titleInput')} *
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  className={cn(
+                    "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm placeholder:text-xs",
+                    "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
+                    "h-10 dark:bg-dark-surface"
+                  )}
                   placeholder={t('eventModal.regular.titlePlaceholder')}
-                  className="w-full px-4 py-3 border border-border dark:border-dark-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary focus:border-transparent transition-colors text-text-primary dark:text-dark-text-primary dark:bg-dark-surface"
                   autoFocus
                 />
               </div>
@@ -209,11 +206,11 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
             {/* Поля для финансового события */}
             {isFinanceCategory && (
               <>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-text-primary dark:text-dark-text-primary">
+                <div>
+                  <label className="block text-sm font-medium text-text-primary dark:text-dark-text-primary mb-1">
                     {t('eventModal.finance.amountInput')} *
                   </label>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                     <input
                       type="number"
                       value={amount || ''}
@@ -224,39 +221,62 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
                       placeholder={t('eventModal.finance.amountPlaceholder')}
                       step="0.01"
                       min="0"
-                      className="flex-1 px-4 py-3 border border-border dark:border-dark-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary focus:border-transparent transition-colors text-text-primary dark:text-dark-text-primary dark:bg-dark-surface"
+                      className={cn(
+                        "flex-1 px-3 py-2 border border-border dark:border-dark-border rounded-md",
+                        "text-text-primary dark:text-dark-text-primary text-sm",
+                        "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
+                        "h-10 dark:bg-dark-surface"
+                      )}
                       autoFocus
                     />
-                    <select
-                      value={currency}
-                      onChange={(e) => setCurrency(e.target.value)}
-                      className="px-3 py-3 border border-border dark:border-dark-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary focus:border-transparent transition-colors bg-white dark:bg-dark-surface dark:text-dark-text-primary min-w-[80px]"
-                    >
-                      {CURRENCY_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={currency}
+                        onChange={(e) => setCurrency(e.target.value)}
+                        className={cn(
+                          "px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",
+                          "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
+                          "appearance-none h-10 dark:bg-dark-surface min-w-[80px]",
+                          "bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')]",
+                          "dark:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')]",
+                          "bg-[position:right_0.5rem_center] bg-[length:16px_12px] bg-no-repeat",
+                          "border-border dark:border-dark-border"
+                        )}
+                        style={{
+                          paddingRight: '2.5rem',
+                        }}
+                      >
+                        {CURRENCY_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-text-primary dark:text-dark-text-primary">
+                <div>
+                  <label className="block text-sm font-medium text-text-primary dark:text-dark-text-primary mb-1">
                     {t('eventModal.finance.titleInputOptional')}
                   </label>
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
+                    className={cn(
+                      "w-full px-3 py-2 border border-border dark:border-dark-border rounded-md",
+                      "text-text-primary dark:text-dark-text-primary text-sm placeholder:text-xs",
+                      "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
+                      "h-10 dark:bg-dark-surface"
+                    )}
                     placeholder={t('eventModal.finance.titlePlaceholder')}
-                    className="w-full px-4 py-3 border border-border dark:border-dark-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-dark-primary focus:border-transparent transition-colors text-text-primary dark:text-dark-text-primary dark:bg-dark-surface"
                   />
                 </div>
               </>
             )}
 
-            {/* Цвет события - В ОДНУ СТРОКУ */}
+            {/* Цвет события */}
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-text-primary dark:text-dark-text-primary">
                 {t('eventModal.colorLabel')}
@@ -297,25 +317,25 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
             </div>
           </div>
 
-          {/* Кнопки действий - КОМПАКТНЫЕ */}
-          <div className="flex gap-3 pt-4 mt-6 border-t border-border dark:border-dark-border">
+          {/* Кнопки действий */}
+          <div className="flex gap-3 mt-4 pt-4 border-t border-border dark:border-dark-border">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-text-secondary dark:text-dark-text-secondary hover:text-text-primary dark:hover:text-dark-text-primary hover:bg-surface dark:hover:bg-dark-surface rounded-lg transition-colors duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2.5 border border-border dark:border-dark-border text-text-secondary dark:text-dark-text-secondary 
+                       font-medium rounded-lg hover:border-border-light dark:hover:border-dark-border-light 
+                       transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
+              onClick={handleSubmit}
               disabled={isSubmitting}
-              className={cn(
-                "flex-1 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all duration-200",
-                "bg-primary dark:bg-dark-primary hover:bg-primary-dark dark:hover:bg-dark-primary-dark",
-                "active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
-                "relative"
-              )}
+              className="flex-1 py-2.5 bg-blue-600 dark:bg-blue-600 text-white font-medium 
+                       rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 
+                       transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed relative"
             >
               {isSubmitting ? (
                 <div className="flex items-center justify-center">
