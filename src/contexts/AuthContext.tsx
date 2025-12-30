@@ -11,6 +11,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>
   signup: (email: string, password: string, name?: string) => Promise<{ success: boolean; message?: string }>
+  resetPassword: (email: string) => Promise<{ success: boolean; message?: string }>
   logout: () => Promise<void>
   updateProfile: (updates: Partial<Profile>) => Promise<void>
   loading: boolean
@@ -138,9 +139,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       })
 
       if (error) {
+        // Более понятные сообщения об ошибках
+        let userMessage = error.message
+        if (error.message.includes('Invalid login credentials')) {
+          userMessage = 'Неверный email или пароль'
+        } else if (error.message.includes('Email not confirmed')) {
+          userMessage = 'Пожалуйста, подтвердите ваш email. Проверьте вашу почту.'
+        } else if (error.message.includes('Network')) {
+          userMessage = 'Ошибка сети. Проверьте подключение к интернету.'
+        }
+        
         return { 
           success: false, 
-          message: error.message 
+          message: userMessage 
         }
       }
 
@@ -161,21 +172,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(true)
     
     try {
+      const siteUrl = window.location.origin;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             name: name || email.split('@')[0],
-          }
+          },
+          emailRedirectTo: `${siteUrl}/confirm`
         }
       })
 
       if (error) {
+        let userMessage = error.message
+        if (error.message.includes('User already registered')) {
+          userMessage = 'Пользователь с таким email уже зарегистрирован'
+        } else if (error.message.includes('Password')) {
+          userMessage = 'Пароль должен содержать минимум 6 символов'
+        } else if (error.message.includes('Email')) {
+          userMessage = 'Введите корректный email адрес'
+        }
+        
         return { 
           success: false, 
-          message: error.message 
+          message: userMessage 
         }
+      }
+
+      // Проверяем, нужно ли подтверждение email
+      if (data?.user?.identities?.length === 0) {
+        // Email уже зарегистрирован
+        return { 
+          success: false, 
+          message: 'Пользователь с таким email уже зарегистрирован'
+        };
       }
 
       return { 
@@ -187,6 +219,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { 
         success: false, 
         message: error.message || 'Произошла ошибка при регистрации' 
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Функция восстановления пароля
+  const resetPassword = async (email: string) => {
+    setLoading(true)
+    
+    try {
+      const siteUrl = window.location.origin;
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${siteUrl}/reset-password`,
+      })
+
+      if (error) {
+        let userMessage = error.message
+        if (error.message.includes('User not found')) {
+          userMessage = 'Пользователь с таким email не найден'
+        }
+        
+        return { 
+          success: false, 
+          message: userMessage 
+        }
+      }
+
+      return { 
+        success: true, 
+        message: 'Инструкции по восстановлению пароля отправлены на вашу почту.' 
+      }
+    } catch (error: any) {
+      console.error('Ошибка при восстановлении пароля:', error)
+      return { 
+        success: false, 
+        message: error.message || 'Произошла ошибка при восстановлении пароля' 
       }
     } finally {
       setLoading(false)
@@ -212,6 +282,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user,
     login,
     signup,
+    resetPassword,
     logout,
     updateProfile,
     loading,

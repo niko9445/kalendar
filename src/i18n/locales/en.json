@@ -11,7 +11,7 @@
     "back": "Back"
   },
   "auth": {
-    "title": "Login",
+    "title": "",
     "email": "Email",
     "password": "Password",
     "login": "Sign In",
@@ -173,68 +173,93 @@
     "message": "Page not found",
     "goHome": "Go home"
   },
-    "dashboard": {
+  "dashboard": {
     "title": "Mobile Application",
     "subtitle": "Dashboard",
     "online": "Online",
     "welcome": {
-        "title": "Welcome!",
-        "subtitle": "Good to see you again",
-        "description": "You have successfully logged into the temporary authorization system. This will be the main page of your mobile application."
+      "title": "Welcome!",
+      "subtitle": "Good to see you again",
+      "description": "You have successfully logged into the temporary authorization system. This will be the main page of your mobile application."
     },
     "profile": {
-        "title": "Your Profile",
-        "email": "Email",
-        "name": "Name",
-        "notSpecified": "Not specified",
-        "status": "Status",
-        "active": "Active"
+      "title": "Your Profile",
+      "email": "Email",
+      "name": "Name",
+      "notSpecified": "Not specified",
+      "status": "Status",
+      "active": "Active"
     },
     "demo": {
-        "title": "Demo Features",
-        "feature1": "Feature 1",
-        "feature2": "Feature 2",
-        "feature3": "Feature 3"
+      "title": "Demo Features",
+      "feature1": "Feature 1",
+      "feature2": "Feature 2",
+      "feature3": "Feature 3"
     },
     "system": {
-        "title": "Temporary Authorization System",
-        "description": "This system uses localStorage to store sessions. After backend implementation, data will be stored in the database.",
-        "testAccounts": "test accounts",
-        "admin": "Admin",
-        "user": "User",
-        "test": "Test"
+      "title": "Temporary Authorization System",
+      "description": "This system uses localStorage to store sessions. After backend implementation, data will be stored in the database.",
+      "testAccounts": "test accounts",
+      "admin": "Admin",
+      "user": "User",
+      "test": "Test"
     },
     "footer": {
-        "copyright": "Mobile Application. Temporary authorization system.",
-        "documentation": "Documentation",
-        "support": "Support",
-        "about": "About"
+      "copyright": "Mobile Application. Temporary authorization system.",
+      "documentation": "Documentation",
+      "support": "Support",
+      "about": "About"
     }
   },
-    "login": {
+  "login": {
     "appTitle": "GoalManager",
     "appSubtitle": "Manage your goals",
     "emailPlaceholder": "Email",
     "passwordPlaceholder": "Password",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
-    "register": "Register",
+    "register": "Create account",
     "forgotPassword": "Forgot password?",
     "signingIn": "Signing in...",
-    "demoAccounts": "Demo accounts",
-    "demo": {
-        "admin": "Admin",
-        "user": "User",
-        "test": "Test"
-    },
     "errors": {
-        "fillAllFields": "Please fill all fields",
-        "loginFailed": "Login failed",
-        "registrationUnavailable": "Registration temporarily unavailable",
-        "forgotPasswordUnavailable": "Password recovery temporarily unavailable"
-    }
+      "fillAllFields": "Please fill all fields",
+      "loginFailed": "Login failed",
+      "registrationFailed": "Registration failed",
+      "resetFailed": "Password reset failed",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "passwordsDontMatch": "Passwords do not match",
+      "emailAlreadyRegistered": "Email already registered",
+      "invalidEmailFormat": "Invalid email format"
     },
-    "protectedRoute": {
-    "checkingAuth": "Checking authorization..."
+    "success": {
+      "registration": "Registration successful! Check your email to confirm.",
+      "resetPassword": "Password reset instructions sent to your email."
     }
+  },
+  "protectedRoute": {
+    "checkingAuth": "Checking authorization..."
+  },
+  "resetPassword": {
+    "title": "New Password",
+    "subtitle": "Enter a new password for your account",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "passwordPlaceholder": "At least 6 characters",
+    "confirmPlaceholder": "Enter password again",
+    "changeButton": "Change Password",
+    "changing": "Changing password...",
+    "successTitle": "Password successfully changed!",
+    "successMessage": "You will be redirected to the login page...",
+    "backToLogin": "Back to login",
+    "errors": {
+      "fillAllFields": "Please fill all fields",
+      "passwordsDontMatch": "Passwords do not match",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "changeFailed": "Error changing password"
+    }
+  },
+  "confirmEmail": {
+    "title": "Check your email",
+    "message": "Confirmation link has been sent to your email."
+  }
 }

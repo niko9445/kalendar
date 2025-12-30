@@ -11,7 +11,7 @@
     "back": "Назад"
   },
   "auth": {
-    "title": "Вход в систему",
+    "title": "",
     "email": "Электронная почта",
     "password": "Пароль",
     "login": "Войти",
@@ -178,63 +178,88 @@
     "subtitle": "Главная панель",
     "online": "В сети",
     "welcome": {
-        "title": "Добро пожаловать!",
-        "subtitle": "Рады видеть вас снова",
-        "description": "Вы успешно вошли в систему временной авторизации. Здесь будет главная страница вашего мобильного приложения."
+      "title": "Добро пожаловать!",
+      "subtitle": "Рады видеть вас снова",
+      "description": "Вы успешно вошли в систему временной авторизации. Здесь будет главная страница вашего мобильного приложения."
     },
     "profile": {
-        "title": "Ваш профиль",
-        "email": "Email",
-        "name": "Имя",
-        "notSpecified": "Не указано",
-        "status": "Статус",
-        "active": "Активен"
+      "title": "Ваш профиль",
+      "email": "Email",
+      "name": "Имя",
+      "notSpecified": "Не указано",
+      "status": "Статус",
+      "active": "Активен"
     },
     "demo": {
-        "title": "Демо функции",
-        "feature1": "Функция 1",
-        "feature2": "Функция 2",
-        "feature3": "Функция 3"
+      "title": "Демо функции",
+      "feature1": "Функция 1",
+      "feature2": "Функция 2",
+      "feature3": "Функция 3"
     },
     "system": {
-        "title": "Временная система авторизации",
-        "description": "Эта система использует localStorage для хранения сессии. После реализации бэкенда данные будут храниться в базе данных.",
-        "testAccounts": "тестовых аккаунта",
-        "admin": "Админ",
-        "user": "Пользователь",
-        "test": "Тестовый"
+      "title": "Временная система авторизации",
+      "description": "Эта система использует localStorage для хранения сессии. После реализации бэкенда данные будут храниться в базе данных.",
+      "testAccounts": "тестовых аккаунта",
+      "admin": "Админ",
+      "user": "Пользователь",
+      "test": "Тестовый"
     },
     "footer": {
-        "copyright": "Мобильное приложение. Временная система авторизации.",
-        "documentation": "Документация",
-        "support": "Поддержка",
-        "about": "О проекте"
+      "copyright": "Мобильное приложение. Временная система авторизации.",
+      "documentation": "Документация",
+      "support": "Поддержка",
+      "about": "О проекте"
     }
   },
-    "login": {
+  "login": {
     "appTitle": "GoalManager",
     "appSubtitle": "Управляй своими целями",
     "emailPlaceholder": "Email",
     "passwordPlaceholder": "Пароль",
     "showPassword": "Показать пароль",
     "hidePassword": "Скрыть пароль",
-    "register": "Регистрация",
+    "register": "Создать аккаунт",
     "forgotPassword": "Забыли пароль?",
     "signingIn": "Вход...",
-    "demoAccounts": "Демо аккаунты",
-    "demo": {
-        "admin": "Админ",
-        "user": "Пользователь",
-        "test": "Тестовый"
-    },
     "errors": {
-        "fillAllFields": "Заполните все поля",
-        "loginFailed": "Ошибка при входе",
-        "registrationUnavailable": "Регистрация временно недоступна",
-        "forgotPasswordUnavailable": "Восстановление пароля временно недоступна"
-    }
+      "fillAllFields": "Заполните все поля",
+      "loginFailed": "Ошибка при входе",
+      "registrationFailed": "Ошибка при регистрации",
+      "resetFailed": "Ошибка при восстановлении пароля",
+      "passwordMinLength": "Пароль должен содержать минимум 6 символов",
+      "passwordsDontMatch": "Пароли не совпадают",
+      "emailAlreadyRegistered": "Пользователь с таким email уже зарегистрирован",
+      "invalidEmailFormat": "Неверный формат email"
     },
-    "protectedRoute": {
-    "checkingAuth": "Проверка авторизации..."
+    "success": {
+      "registration": "Регистрация успешна! Проверьте вашу почту для подтверждения.",
+      "resetPassword": "Инструкции по восстановлению пароля отправлены на вашу почту."
     }
+  },
+  "protectedRoute": {
+    "checkingAuth": "Проверка авторизации..."
+  },
+  "resetPassword": {
+    "title": "Новый пароль",
+    "subtitle": "Введите новый пароль для вашего аккаунта",
+    "newPassword": "Новый пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "passwordPlaceholder": "Минимум 6 символов",
+    "confirmPlaceholder": "Введите пароль еще раз",
+    "changeButton": "Изменить пароль",
+    "changing": "Изменение пароля...",
+    "successTitle": "Пароль успешно изменен!",
+    "successMessage": "Вы будете перенаправлены на страницу входа...",
+    "backToLogin": "Вернуться к входу",
+    "errors": {
+      "fillAllFields": "Заполните все поля",
+      "passwordsDontMatch": "Пароли не совпадают",
+      "passwordMinLength": "Пароль должен содержать минимум 6 символов",
+      "changeFailed": "Ошибка при смене пароля"
+    }
+  },
+  "confirmEmail": {
+    "title": "Проверьте вашу почту",
+    "message": "Ссылка для подтверждения отправлена на ваш email."
+  }
 }
