@@ -15,26 +15,48 @@ const ResetPassword: React.FC = () => {
   useEffect(() => {
     const checkForToken = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        console.log('🔄 Проверяем URL:', window.location.href);
         
-        if (session) {
-          setHasToken(true);
-        } else {
-          const hash = window.location.hash;
-          if (hash.includes('access_token') && hash.includes('type=recovery')) {
-            const { data, error } = await supabase.auth.getSession();
+        // Проверяем есть ли токен восстановления в URL
+        const hash = window.location.hash;
+        console.log('Hash from URL:', hash);
+        
+        if (hash.includes('access_token') && hash.includes('type=recovery')) {
+          console.log('✅ Найден токен восстановления в URL');
+          
+          // Извлекаем токен из URL
+          const params = new URLSearchParams(hash.substring(1));
+          const accessToken = params.get('access_token');
+          const refreshToken = params.get('refresh_token');
+          
+          console.log('Access token present:', !!accessToken);
+          console.log('Refresh token present:', !!refreshToken);
+          
+          if (accessToken) {
+            // Устанавливаем сессию вручную из токена
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || ''
+            });
+            
             if (error) {
+              console.error('❌ Ошибка установки сессии:', error);
               setError('Ссылка для восстановления пароля недействительна или устарела');
               setTimeout(() => navigate('/login'), 3000);
             } else if (data.session) {
+              console.log('✅ Сессия установлена:', data.session.user?.email);
               setHasToken(true);
             }
           } else {
-            setError('Для смены пароля перейдите по ссылке из письма');
-            setTimeout(() => navigate('/login'), 3000);
+            setError('Не найден токен в ссылке');
           }
+        } else {
+          console.log('❌ Нет токена восстановления в URL');
+          setError('Для смены пароля перейдите по ссылке из письма');
+          setTimeout(() => navigate('/login'), 3000);
         }
       } catch (error) {
+        console.error('❌ Ошибка при проверке токена:', error);
         setError('Ошибка при проверке ссылки');
       } finally {
         setTokenChecked(true);
@@ -47,6 +69,8 @@ const ResetPassword: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    console.log('🔄 Начинаем смену пароля...');
 
     // Валидация
     if (!password || !confirmPassword) {
@@ -65,25 +89,43 @@ const ResetPassword: React.FC = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
+      console.log('⏳ Меняем пароль...');
+      
+      const { data, error } = await supabase.auth.updateUser({
         password: password
       });
 
-      if (error) throw error;
+      console.log('Результат updateUser:', { data, error });
 
+      if (error) {
+        console.error('❌ Ошибка смены пароля:', error);
+        throw error;
+      }
+
+      console.log('✅ Пароль успешно изменен!');
+      
       // Успех
       setSuccess(true);
       setLoading(false);
       
-      // Выходим из системы принудительно
+      console.log('🔐 Выходим из системы...');
+      
+      // Выходим из системы
       await supabase.auth.signOut();
       
-      // Ждем 2 секунды и используем window.location для принудительного редиректа
+      console.log('✅ Вышли из системы, ждем 2 секунды...');
+      
+      // Полный перезапуск страницы
       setTimeout(() => {
+        console.log('🔄 Перенаправляем на /login...');
+        // Очищаем hash из URL
+        window.location.hash = '';
+        // Полный переход на страницу логина
         window.location.href = '/login';
       }, 2000);
       
     } catch (error: any) {
+      console.error('❌ Общая ошибка:', error);
       setError(error.message || 'Ошибка при смене пароля');
       setLoading(false);
     }
@@ -120,7 +162,7 @@ const ResetPassword: React.FC = () => {
   }
 
   // Если нет токена
-  if (!hasToken && !error.includes('Для смены пароля')) {
+  if (!hasToken) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
         <div className="text-center">
@@ -131,7 +173,7 @@ const ResetPassword: React.FC = () => {
           </div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Ошибка</h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Неверная или устаревшая ссылка для восстановления пароля
+            {error || 'Неверная или устаревшая ссылка для восстановления пароля'}
           </p>
           <button
             onClick={() => navigate('/login')}
@@ -243,7 +285,6 @@ const ResetPassword: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  // Принудительный выход и редирект
                   supabase.auth.signOut().then(() => {
                     window.location.href = '/login';
                   });
