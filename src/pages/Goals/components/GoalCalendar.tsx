@@ -2,13 +2,29 @@ import React, { useState, useRef, useMemo, useCallback } from 'react';
 import { cn } from '../../../utils/cn';
 import { useTranslation } from '../../../i18n/hooks';
 import GoalEventModal from './GoalEventModal';
-import { Goal, CalendarEvent } from '../../../contexts/GoalsContext';
-import { useGoals } from '../../../contexts/GoalsContext'; // ДОБАВЬТЕ ЭТОТ ИМПОРТ
+import { useGoals } from '../../../contexts/GoalsContext';
 
 interface GoalCalendarProps {
-  goal: Goal;
-  events: CalendarEvent[];
-  onEventSave: (event: Omit<CalendarEvent, 'id'>) => void;
+  goal: {
+    id: string;
+    title: string;
+    category: string;
+  };
+  events: Array<{
+    id: string;
+    goalId: string;
+    title: string;
+    description: string;
+    date: string;
+    color: string;
+    type: 'work' | 'personal' | 'health' | 'learning' | 'completion' | 'finance';
+    completed: boolean;
+    amount?: number;
+    currency?: string;
+    isCompletionDay?: boolean;
+    completionDayId?: string;
+  }>;
+  onEventSave: (event: any) => void;
   onEventDelete: (eventId: string) => void;
   onEventToggleComplete: (eventId: string) => void;
   onDeleteGoal: () => void;
@@ -42,7 +58,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
   onDeleteGoal,
 }) => {
   const { t, language } = useTranslation();
-  const { toggleCompletionDay, isCompletionDayEvent } = useGoals(); // ДОБАВЬТЕ ЭТО
+  const { toggleCompletionDay, isCompletionDayEvent } = useGoals();
   
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -84,9 +100,8 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
       const isToday = dateStr === new Date().toISOString().split('T')[0];
       const isSelected = selectedDate === dateStr;
       
-      // Используем функцию из контекста
-      const hasCompletionDay = dayEvents.some(isCompletionDayEvent);
-      const hasRegularEvents = dayEvents.some(event => !isCompletionDayEvent(event));
+      const hasCompletionDay = dayEvents.some(event => event.type === 'completion');
+      const hasRegularEvents = dayEvents.some(event => event.type !== 'completion');
       
       days.push({
         date: i,
@@ -100,7 +115,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
     }
     
     return days;
-  }, [currentDate, events, goal.id, selectedDate, isCompletionDayEvent]);
+  }, [currentDate, events, goal.id, selectedDate]);
 
   // Оптимизированный обработчик кликов
   const handleDateClick = useCallback((dateStr: string) => {
@@ -247,7 +262,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
                   day.hasCompletionDay 
                     ? "text-primary dark:text-dark-primary font-bold" 
                     : day.isToday
-                    ? "text-primary dark:text-dark-primary font-bold" // Жирный primary цвет
+                    ? "text-primary dark:text-dark-primary font-bold"
                     : "text-gray-800 dark:text-gray-200",
                 )}>
                   {day.date}
@@ -282,7 +297,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
           </div>
           <div className="space-y-1">
             {events
-              .filter(event => event.date === selectedDate && event.goalId === goal.id && !isCompletionDayEvent(event))
+              .filter(event => event.date === selectedDate && event.goalId === goal.id && event.type !== 'completion')
               .map((event) => {
                 const isFinanceEvent = event.amount !== undefined;
                 

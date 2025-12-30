@@ -38,7 +38,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-800 dark:text-white">
-                  {user?.name || user?.email}
+                  {user?.user_metadata?.name || user?.email}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {t('dashboard.online')}
@@ -95,7 +95,7 @@ const Dashboard: React.FC = () => {
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 dark:text-gray-400">{t('dashboard.profile.name')}:</span>
                 <span className="font-medium text-gray-800 dark:text-white">
-                  {user?.name || t('dashboard.profile.notSpecified')}
+                  {user?.user_metadata?.name || t('dashboard.profile.notSpecified')}
                 </span>
               </div>
               <div className="flex justify-between items-center">

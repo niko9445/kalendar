@@ -2,12 +2,12 @@ import React, { useState, useMemo } from 'react';
 import Header from '../../components/Navigation/Header';
 import BottomNav from '../../components/Navigation/BottomNav';
 import { useTranslation } from '../../i18n/hooks';
-import { useGoals, CalendarEvent } from '../../contexts/GoalsContext';
+import { useGoals } from '../../contexts/GoalsContext';
 import { cn } from '../../utils/cn';
 
 const Calendar: React.FC = () => {
   const { events, deleteEvent, toggleEventComplete } = useGoals();
-  const { t, calendar: calendarT, language } = useTranslation(); // ВЫНЕС language В КОМПОНЕНТ
+  const { t, calendar: calendarT, language } = useTranslation();
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const getDaysInMonth = (date: Date) => {
@@ -206,11 +206,11 @@ const Calendar: React.FC = () => {
             {sortedEvents.length > 0 ? (
               <div className="divide-y divide-border/50 dark:divide-dark-border/50">
                 {sortedEvents.map(event => {
-                  const isFinanceEvent = event.amount !== undefined;
+                  const isFinanceEvent = event.amount !== undefined && event.amount !== null;
                   
                   let displayText = event.title;
                   
-                  if (isFinanceEvent && event.amount !== undefined) {
+                  if (isFinanceEvent && event.amount !== undefined && event.amount !== null) {
                     const formattedAmount = event.amount.toLocaleString('ru-RU', {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2
@@ -228,8 +228,8 @@ const Calendar: React.FC = () => {
                     event.completed 
                       ? "text-text-secondary dark:text-dark-text-secondary line-through" 
                       : "text-text-primary dark:text-dark-text-primary",
-                    isFinanceEvent && event.amount !== undefined && event.amount >= 0 && "!text-green-600 dark:!text-green-400",
-                    isFinanceEvent && event.amount !== undefined && event.amount < 0 && "!text-red-600 dark:!text-red-400"
+                    isFinanceEvent && event.amount !== undefined && event.amount !== null && event.amount >= 0 && "!text-green-600 dark:!text-green-400",
+                    isFinanceEvent && event.amount !== undefined && event.amount !== null && event.amount < 0 && "!text-red-600 dark:!text-red-400"
                   );
 
                   return (

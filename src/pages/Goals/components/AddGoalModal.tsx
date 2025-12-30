@@ -5,7 +5,14 @@ import { useTranslation } from '../../../i18n/hooks';
 interface AddGoalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (goal: any) => void;
+  onSave: (goal: {
+    title: string;
+    description: string;
+    category: string;
+    startDate: string;
+    deadline: string;
+    priority: 'high' | 'medium' | 'low';
+  }) => void;
 }
 
 const AddGoalModal: React.FC<AddGoalModalProps> = ({ 
@@ -13,14 +20,14 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
   onClose, 
   onSave 
 }) => {
-  const { t, errors: errorsT } = useTranslation();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: '',
     startDate: '',
     deadline: '',
-    priority: 'medium',
+    priority: 'medium' as 'high' | 'medium' | 'low',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -105,15 +112,14 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
     e.preventDefault();
     
     if (validateForm()) {
-      const newGoal = {
-        id: Date.now().toString(),
-        ...formData,
-        progress: 0,
-        completed: false,
-        isExpanded: false,
-      };
-      
-      onSave(newGoal);
+      onSave({
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        startDate: formData.startDate,
+        deadline: formData.deadline,
+        priority: formData.priority,
+      });
       resetForm();
       onClose();
     }
@@ -206,7 +212,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                   className={cn(
                     "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm placeholder:text-xs",
                     "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
-                    "h-10 dark:bg-dark-surface", // Уменьшил высоту с min-h-[40px] на h-10
+                    "h-10 dark:bg-dark-surface",
                     errors.title 
                       ? "border-error dark:border-dark-error" 
                       : "border-border dark:border-dark-border"
@@ -229,7 +235,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                   onChange={(e) => handleChange('description', e.target.value)}
                   className="w-full px-3 py-2 border border-border dark:border-dark-border rounded-md text-text-primary dark:text-dark-text-primary text-sm placeholder:text-xs
                            focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500
-                           min-h-[60px] resize-none dark:bg-dark-surface" // Уменьшил высоту с min-h-[80px] на min-h-[60px]
+                           min-h-[60px] resize-none dark:bg-dark-surface"
                   placeholder={t('addGoalModal.descriptionPlaceholder')}
                 />
               </div>
@@ -269,7 +275,6 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                       </option>
                     ))}
                   </select>
-                  {/* УДАЛИЛ этот div с кастомной стрелкой - она теперь в background */}
                 </div>
                 {errors.category && (
                   <p className="mt-1 text-xs text-error dark:text-dark-text-error">{errors.category}</p>
@@ -289,7 +294,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                       onClick={() => handleChange('priority', priority.value)}
                       className={cn(
                         "flex-1 px-3 py-2 text-sm font-medium rounded-md border transition-colors",
-                        "h-10", // Уменьшил высоту с min-h-[40px] на h-10
+                        "h-10",
                         formData.priority === priority.value
                           ? "border-blue-500 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
                           : "border-border dark:border-dark-border text-text-secondary dark:text-dark-text-secondary hover:border-border-light dark:hover:border-dark-border-light"
@@ -317,7 +322,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                       className={cn(
                         "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",
                         "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
-                        "appearance-none h-10 dark:bg-dark-surface", // Уменьшил высоту
+                        "appearance-none h-10 dark:bg-dark-surface",
                         errors.startDate 
                           ? "border-error dark:border-dark-error" 
                           : "border-border dark:border-dark-border"
@@ -343,7 +348,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                       className={cn(
                         "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",
                         "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
-                        "appearance-none h-10 dark:bg-dark-surface", // Уменьшил высоту
+                        "appearance-none h-10 dark:bg-dark-surface",
                         errors.deadline 
                           ? "border-error dark:border-dark-error" 
                           : "border-border dark:border-dark-border"

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useTranslation } from '../i18n/hooks'; // ДОБАВИЛ ИМПОРТ
+import { useTranslation } from '../i18n/hooks';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,7 +13,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo = '/login' 
 }) => {
   const { isAuthenticated, loading } = useAuth();
-  const { t } = useTranslation(); // ИСПОЛЬЗУЕМ ПЕРЕВОДЫ
+  const { t } = useTranslation();
 
   if (loading) {
     // Можно добавить красивый лоадер

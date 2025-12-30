@@ -1,7 +1,7 @@
 import React, { useState, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTranslation } from '../../i18n/hooks'; // ДОБАВИЛ ИМПОРТ
+import { useTranslation } from '../../i18n/hooks';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -13,7 +13,7 @@ const LoginForm: React.FC = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
-  const { t, auth, errors: errorsT } = useTranslation(); // ИСПОЛЬЗУЕМ ПЕРЕВОДЫ
+  const { t, auth } = useTranslation();
 
   useEffect(() => {
     setMounted(true);
@@ -43,21 +43,9 @@ const LoginForm: React.FC = () => {
   };
 
   const handleDemoLogin = (demoType: 'admin' | 'user' | 'test') => {
-    switch (demoType) {
-      case 'admin':
-        setEmail('admin@example.com');
-        setPassword('admin123');
-        break;
-      case 'user':
-        setEmail('user@example.com');
-        setPassword('user123');
-        break;
-      case 'test':
-        setEmail('test@test.com');
-        setPassword('test123');
-        break;
-    }
-    setError('');
+    // Демо аккаунты временно отключены, так как переходим на Supabase
+    // Позже можно будет создать тестовых пользователей в Supabase
+    setError(t('login.demoTemporarilyDisabled'));
   };
 
   const demoAccounts = [
@@ -136,7 +124,7 @@ const LoginForm: React.FC = () => {
         }
         
         .dark .icon-eye-off::before {
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox="0 0 24 24" fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21'/%3E%3C/svg%3E");
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21'/%3E%3C/svg%3E");
         }
         
         /* Спиннер для кнопки загрузки */
@@ -287,11 +275,15 @@ const LoginForm: React.FC = () => {
                          rounded-lg text-xs hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20
                          transition-all duration-300 transform hover:scale-[1.05] active:scale-95
                          hover:text-blue-600 dark:hover:text-blue-400"
+                disabled
               >
                 {account.label}
               </button>
             ))}
           </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+            {t('login.createAccountToTest')}
+          </p>
         </div>
       </div>
     </div>

@@ -1,17 +1,40 @@
 import React from 'react';
 import { cn } from '../../../utils/cn';
-import { useTranslation } from '../../../i18n/hooks'; // ДОБАВИЛ ИМПОРТ
+import { useTranslation } from '../../../i18n/hooks';
 import GoalCalendar from './GoalCalendar';
-import { Goal, CalendarEvent } from '../../../contexts/GoalsContext';
 
 interface GoalItemCompactProps {
-  goal: Goal;
-  events: CalendarEvent[];
+  goal: {
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    progress: number;
+    startDate: string;
+    deadline: string;
+    priority: 'high' | 'medium' | 'low';
+    completed: boolean;
+    isExpanded: boolean;
+  };
+  events: Array<{
+    id: string;
+    goalId: string;
+    title: string;
+    description: string;
+    date: string;
+    color: string;
+    type: 'work' | 'personal' | 'health' | 'learning' | 'completion' | 'finance';
+    completed: boolean;
+    amount?: number;
+    currency?: string;
+    isCompletionDay?: boolean;
+    completionDayId?: string;
+  }>;
   isExpanded: boolean;
   onToggleExpand: () => void;
   onToggleComplete: () => void;
   onDeleteGoal: () => void;
-  onEventSave: (event: Omit<CalendarEvent, 'id'>) => void;
+  onEventSave: (event: any) => void;
   onEventDelete: (eventId: string) => void;
   onEventToggleComplete: (eventId: string) => void;
 }
@@ -27,7 +50,7 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
   onEventDelete,
   onEventToggleComplete,
 }) => {
-  const { t } = useTranslation(); // ИСПОЛЬЗУЕМ ПЕРЕВОДЫ
+  const { t } = useTranslation();
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -57,7 +80,7 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
   };
 
   const regularEvents = events.filter(event => 
-    event.goalId === goal.id && event.title !== t('calendar.completionDay')
+    event.goalId === goal.id && event.type !== 'completion'
   );
   
   const completedEvents = regularEvents.filter(e => e.completed).length;
