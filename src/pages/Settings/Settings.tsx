@@ -116,36 +116,6 @@ const Settings: React.FC = () => {
                 <LanguageSwitcher compact />
               </div>
             </div>
-
-            {/* Уведомления */}
-            <div className="px-4 py-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
-                  <p className="text-sm text-text-primary dark:text-dark-text-primary">
-                    {t('settings.notifications')}
-                  </p>
-                  {/* ЗАМЕНИЛ тернарный оператор на ключ перевода */}
-                  <p className="text-xs text-text-secondary dark:text-dark-text-secondary mt-0.5">
-                    {t('settings.notificationsDescription')}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setNotifications(!notifications)}
-                  className={cn(
-                    "relative w-12 h-6 rounded-full transition-colors",
-                    notifications ? "bg-primary dark:bg-dark-primary" : "bg-border dark:bg-gray-600"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "absolute top-1 w-4 h-4 rounded-full bg-white transition-transform shadow-sm",
-                      notifications ? "left-7" : "left-1"
-                    )}
-                  />
-                </button>
-              </div>
-            </div>
           </div>
         </div>
 
