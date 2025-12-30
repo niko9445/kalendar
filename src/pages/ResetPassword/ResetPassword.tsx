@@ -73,15 +73,18 @@ const ResetPassword: React.FC = () => {
 
       // Успех
       setSuccess(true);
+      setLoading(false);
       
-      // Ждем 3 секунды и перенаправляем
+      // Выходим из системы принудительно
+      await supabase.auth.signOut();
+      
+      // Ждем 2 секунды и используем window.location для принудительного редиректа
       setTimeout(() => {
-        navigate('/login');
-      }, 3000);
+        window.location.href = '/login';
+      }, 2000);
       
     } catch (error: any) {
       setError(error.message || 'Ошибка при смене пароля');
-    } finally {
       setLoading(false);
     }
   };
@@ -165,10 +168,10 @@ const ResetPassword: React.FC = () => {
               Пароль успешно изменен!
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Теперь вы можете войти с новым паролем
+              Вы будете перенаправлены на страницу входа...
             </p>
             <div className="animate-pulse text-sm text-blue-600 dark:text-blue-400">
-              Перенаправление на страницу входа...
+              Перенаправление...
             </div>
           </div>
         ) : (
@@ -239,7 +242,12 @@ const ResetPassword: React.FC = () => {
             <div className="text-center">
               <button
                 type="button"
-                onClick={() => navigate('/login')}
+                onClick={() => {
+                  // Принудительный выход и редирект
+                  supabase.auth.signOut().then(() => {
+                    window.location.href = '/login';
+                  });
+                }}
                 className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 disabled:opacity-50"
                 disabled={loading}
               >
