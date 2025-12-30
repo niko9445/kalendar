@@ -1,4 +1,3 @@
-// src/pages/ResetPassword/ResetPassword.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
@@ -10,32 +9,41 @@ const ResetPassword: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [hasToken, setHasToken] = useState(false);
+  const [tokenChecked, setTokenChecked] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     // Проверяем, есть ли токен восстановления пароля в URL
     const checkForToken = async () => {
-      // Supabase автоматически обрабатывает токен из URL
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        // Если нет сессии, проверяем есть ли токен в URL
-        const hash = window.location.hash;
-        if (hash.includes('access_token') && hash.includes('type=recovery')) {
-          // Пробуем получить сессию из URL
-          const { data, error } = await supabase.auth.getSession();
-          if (error) {
-            setError('Ссылка для восстановления пароля недействительна или устарела');
-            setTimeout(() => navigate('/login'), 3000);
-          } else if (data.session) {
-            setHasToken(true);
-          }
+      try {
+        // Проверяем текущую сессию
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // Если есть сессия, значит токен валидный
+          setHasToken(true);
         } else {
-          setError('Для смены пароля перейдите по ссылке из письма');
-          setTimeout(() => navigate('/login'), 3000);
+          // Проверяем URL на наличие токена
+          const hash = window.location.hash;
+          if (hash.includes('access_token') && hash.includes('type=recovery')) {
+            // Пробуем получить сессию из URL
+            const { data, error } = await supabase.auth.getSession();
+            if (error) {
+              setError('Ссылка для восстановления пароля недействительна или устарела');
+              setTimeout(() => navigate('/login'), 3000);
+            } else if (data.session) {
+              setHasToken(true);
+            }
+          } else {
+            setError('Для смены пароля перейдите по ссылке из письма');
+            setTimeout(() => navigate('/login'), 3000);
+          }
         }
-      } else {
-        setHasToken(true);
+      } catch (error) {
+        console.error('Error checking token:', error);
+        setError('Ошибка при проверке ссылки');
+      } finally {
+        setTokenChecked(true);
       }
     };
 
@@ -68,28 +76,59 @@ const ResetPassword: React.FC = () => {
         password: password
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Update password error:', error);
+        throw error;
+      }
 
+      // Успешно изменили пароль
       setSuccess(true);
       
-      // Автоматически выходим и редиректим на логин
+      // Ждем 3 секунды и перенаправляем на логин
       setTimeout(() => {
-        supabase.auth.signOut();
         navigate('/login');
       }, 3000);
+      
     } catch (error: any) {
+      console.error('Password change error:', error);
       setError(error.message || 'Ошибка при смене пароля');
-    } finally {
       setLoading(false);
     }
+    // Не сбрасываем loading при успехе - показываем сообщение об успехе
   };
 
-  if (!hasToken && !success && !error.includes('Ссылка для восстановления')) {
+  // Показываем загрузку при проверке токена
+  if (!tokenChecked) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Проверка ссылки...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Если нет токена и это не ошибка о ссылке
+  if (!hasToken && !error.includes('Для смены пароля')) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Ошибка</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Неверная или устаревшая ссылка для восстановления пароля
+          </p>
+          <button
+            onClick={() => navigate('/login')}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300"
+          >
+            Вернуться к входу
+          </button>
         </div>
       </div>
     );
@@ -117,9 +156,12 @@ const ResetPassword: React.FC = () => {
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               Пароль успешно изменен!
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Вы будете перенаправлены на страницу входа...
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Теперь вы можете войти с новым паролем
             </p>
+            <div className="animate-pulse text-sm text-blue-600 dark:text-blue-400">
+              Перенаправление на страницу входа...
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -144,6 +186,7 @@ const ResetPassword: React.FC = () => {
                              dark:bg-gray-800 dark:text-white"
                     placeholder="Минимум 6 символов"
                     required
+                    disabled={loading}
                   />
                 </div>
 
@@ -160,6 +203,7 @@ const ResetPassword: React.FC = () => {
                              dark:bg-gray-800 dark:text-white"
                     placeholder="Введите пароль еще раз"
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -167,7 +211,7 @@ const ResetPassword: React.FC = () => {
 
             <button
               type="submit"
-              disabled={loading || !hasToken}
+              disabled={loading}
               className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium 
                        rounded-lg disabled:opacity-50 disabled:cursor-not-allowed 
                        transition-all duration-300 transform hover:scale-[1.02] active:scale-95
@@ -188,7 +232,8 @@ const ResetPassword: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/login')}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 disabled:opacity-50"
+                disabled={loading}
               >
                 Вернуться к входу
               </button>

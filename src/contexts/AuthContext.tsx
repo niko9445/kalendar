@@ -25,6 +25,20 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
+// Функция для получения базового URL в зависимости от окружения
+const getBaseUrl = () => {
+  // Если запущено на Vercel
+  if (window.location.hostname.includes('vercel.app')) {
+    return 'https://kalendar-lime.vercel.app'
+  }
+  // Если запущено локально
+  if (window.location.hostname === 'localhost') {
+    return 'http://localhost:3000'
+  }
+  // По умолчанию используем текущий origin
+  return window.location.origin
+}
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -172,7 +186,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(true)
     
     try {
-      const siteUrl = window.location.origin;
+      const baseUrl = getBaseUrl();
+      console.log('Using base URL for registration:', baseUrl);
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -181,7 +196,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           data: {
             name: name || email.split('@')[0],
           },
-          emailRedirectTo: `${siteUrl}/confirm`
+          emailRedirectTo: `${baseUrl}/confirm`
         }
       })
 
@@ -210,6 +225,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         };
       }
 
+      console.log('Registration successful, confirmation email sent');
       return { 
         success: true, 
         message: 'Регистрация успешна! Проверьте вашу почту для подтверждения.' 
@@ -230,10 +246,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(true)
     
     try {
-      const siteUrl = window.location.origin;
+      const baseUrl = getBaseUrl();
+      console.log('Using base URL for password reset:', baseUrl);
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${siteUrl}/reset-password`,
+        redirectTo: `${baseUrl}/reset-password`,
       })
 
       if (error) {
@@ -248,6 +265,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
 
+      console.log('Password reset email sent');
       return { 
         success: true, 
         message: 'Инструкции по восстановлению пароля отправлены на вашу почту.' 
