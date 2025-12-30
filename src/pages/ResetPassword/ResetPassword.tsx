@@ -33,19 +33,30 @@ const ResetPassword: React.FC = () => {
           console.log('Refresh token present:', !!refreshToken);
           
           if (accessToken) {
-            // Устанавливаем сессию вручную из токена
-            const { data, error } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken || ''
-            });
-            
-            if (error) {
-              console.error('❌ Ошибка установки сессии:', error);
-              setError('Ссылка для восстановления пароля недействительна или устарела');
-              setTimeout(() => navigate('/login'), 3000);
-            } else if (data.session) {
-              console.log('✅ Сессия установлена:', data.session.user?.email);
-              setHasToken(true);
+            try {
+              // Устанавливаем сессию вручную из токена
+              const { data, error } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken || ''
+              });
+              
+              console.log('Set session result:', { data, error });
+              
+              if (error) {
+                console.error('❌ Ошибка установки сессии:', error);
+                setError(`Ошибка установки сессии: ${error.message}`);
+                setTimeout(() => navigate('/login'), 3000);
+              } else if (data.session) {
+                console.log('✅ Сессия установлена:', data.session.user?.email);
+                setHasToken(true);
+              } else {
+                console.log('❌ Нет сессии в ответе');
+                setError('Не удалось установить сессию');
+                setTimeout(() => navigate('/login'), 3000);
+              }
+            } catch (sessionError) {
+              console.error('❌ Исключение при установке сессии:', sessionError);
+              setError('Ошибка при обработке токена');
             }
           } else {
             setError('Не найден токен в ссылке');
@@ -60,6 +71,7 @@ const ResetPassword: React.FC = () => {
         setError('Ошибка при проверке ссылки');
       } finally {
         setTokenChecked(true);
+        console.log('✅ Проверка токена завершена, hasToken:', hasToken);
       }
     };
 
@@ -162,7 +174,7 @@ const ResetPassword: React.FC = () => {
   }
 
   // Если нет токена
-  if (!hasToken) {
+  if (!hasToken && !error.includes('Для смены пароля')) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
         <div className="text-center">
@@ -185,6 +197,8 @@ const ResetPassword: React.FC = () => {
       </div>
     );
   }
+
+  console.log('🔄 Рендерим форму, hasToken:', hasToken, 'success:', success);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
