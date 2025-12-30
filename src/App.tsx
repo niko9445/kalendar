@@ -23,33 +23,18 @@ const AuthHandler: React.FC = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('Auth event:', event);
-        console.log('Session user:', session?.user?.email);
         
         switch (event) {
           case 'SIGNED_IN':
             console.log('✅ Пользователь вошел:', session?.user?.email);
-            // Автоматический редирект на цели после входа
-            if (window.location.pathname === '/login' || window.location.pathname === '/') {
-              navigate('/goals');
-            }
+            // НЕ перенаправляем автоматически - пусть ProtectedRoute решает
             break;
           case 'SIGNED_OUT':
             console.log('🚪 Пользователь вышел');
-            navigate('/login');
-            break;
-          case 'USER_UPDATED':
-            console.log('📝 Пользователь обновлен:', session?.user?.email);
-            break;
-          case 'TOKEN_REFRESHED':
-            console.log('🔄 Токен обновлен');
             break;
           case 'PASSWORD_RECOVERY':
             console.log('🔑 Восстановление пароля инициировано');
-            // Перенаправляем на страницу сброса пароля
-            navigate('/reset-password');
-            break;
-          case 'INITIAL_SESSION':
-            console.log('🚀 Начальная сессия загружена');
+            // Оставляем пользователя на текущей странице /reset-password
             break;
         }
       }
@@ -76,10 +61,8 @@ const App: React.FC = () => {
                   <Route path="/" element={<Navigate to="/login" replace />} />
                   <Route path="/login" element={<LoginForm />} />
                   
-                  {/* Страница подтверждения email */}
+                  {/* Публичные страницы - БЕЗ ProtectedRoute */}
                   <Route path="/confirm" element={<ConfirmEmail />} />
-                  
-                  {/* Страница сброса пароля */}
                   <Route path="/reset-password" element={<ResetPassword />} />
                   
                   {/* Защищенные маршруты */}
@@ -110,7 +93,7 @@ const App: React.FC = () => {
                     }
                   />
                   
-                  {/* Резервный маршрут на цели */}
+                  {/* Резервный маршрут */}
                   <Route
                     path="/dashboard"
                     element={

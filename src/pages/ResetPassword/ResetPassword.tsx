@@ -13,41 +13,28 @@ const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Проверяем, есть ли токен восстановления пароля в URL
     const checkForToken = async () => {
       try {
-        // Проверяем текущую сессию
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          // Если есть сессия, значит токен валидный
           setHasToken(true);
-          console.log('✅ Session found:', session.user?.email);
         } else {
-          // Проверяем URL на наличие токена
           const hash = window.location.hash;
-          console.log('URL hash:', hash);
-          
           if (hash.includes('access_token') && hash.includes('type=recovery')) {
-            console.log('✅ Recovery token found in URL');
-            // Пробуем получить сессию из URL
             const { data, error } = await supabase.auth.getSession();
             if (error) {
-              console.error('❌ Session error:', error);
               setError('Ссылка для восстановления пароля недействительна или устарела');
               setTimeout(() => navigate('/login'), 3000);
             } else if (data.session) {
-              console.log('✅ Session created from token');
               setHasToken(true);
             }
           } else {
-            console.log('❌ No recovery token in URL');
             setError('Для смены пароля перейдите по ссылке из письма');
             setTimeout(() => navigate('/login'), 3000);
           }
         }
       } catch (error) {
-        console.error('❌ Error checking token:', error);
         setError('Ошибка при проверке ссылки');
       } finally {
         setTokenChecked(true);
@@ -60,65 +47,67 @@ const ResetPassword: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
-    console.log('🔄 Submit started, password length:', password.length);
 
+    // Валидация
     if (!password || !confirmPassword) {
       setError('Заполните все поля');
       return;
     }
-
     if (password !== confirmPassword) {
       setError('Пароли не совпадают');
       return;
     }
-
     if (password.length < 6) {
       setError('Пароль должен содержать минимум 6 символов');
       return;
     }
 
     setLoading(true);
-    console.log('⏳ Password change in progress...');
 
     try {
       const { error } = await supabase.auth.updateUser({
         password: password
       });
 
-      if (error) {
-        console.error('❌ Update password error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('✅ Password changed successfully!');
-      
-      // Устанавливаем успех
+      // Успех
       setSuccess(true);
-      setLoading(false); // Сбрасываем loading при успехе
       
-      console.log('✅ Success state set to true');
-      
-      // Автоматически перенаправляем через 3 секунды
+      // Ждем 3 секунды и перенаправляем
       setTimeout(() => {
-        console.log('🔄 Redirecting to login...');
-        // Выходим из системы
-        supabase.auth.signOut().then(() => {
-          navigate('/login');
-        });
+        navigate('/login');
       }, 3000);
       
     } catch (error: any) {
-      console.error('❌ Password change error:', error);
       setError(error.message || 'Ошибка при смене пароля');
-      setLoading(false); // Сбрасываем loading при ошибке
+    } finally {
+      setLoading(false);
     }
   };
+
+  // CSS для спиннера
+  const spinnerStyles = `
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  `;
 
   // Показываем загрузку при проверке токена
   if (!tokenChecked) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+        <style>{spinnerStyles}</style>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Проверка ссылки...</p>
@@ -127,7 +116,7 @@ const ResetPassword: React.FC = () => {
     );
   }
 
-  // Если нет токена и это не ошибка о ссылке
+  // Если нет токена
   if (!hasToken && !error.includes('Для смены пароля')) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
@@ -152,10 +141,9 @@ const ResetPassword: React.FC = () => {
     );
   }
 
-  console.log('🔄 Component render, success:', success, 'loading:', loading);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+      <style>{spinnerStyles}</style>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
