@@ -69,33 +69,32 @@ const ResetPassword: React.FC = () => {
       return;
     }
 
-    setLoading(true);
+     setLoading(true);
 
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      });
+        try {
+            const { error } = await supabase.auth.updateUser({
+            password: password
+            });
 
-      if (error) {
-        console.error('Update password error:', error);
-        throw error;
-      }
+            if (error) throw error;
 
-      // Успешно изменили пароль
-      setSuccess(true);
-      
-      // Ждем 3 секунды и перенаправляем на логин
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000);
-      
-    } catch (error: any) {
-      console.error('Password change error:', error);
-      setError(error.message || 'Ошибка при смене пароля');
-      setLoading(false);
-    }
-    // Не сбрасываем loading при успехе - показываем сообщение об успехе
-  };
+            // Сразу показываем успех
+            setSuccess(true);
+            
+            // Автоматически перенаправляем через 2 секунды
+            setTimeout(() => {
+            // Выходим из системы
+            supabase.auth.signOut().then(() => {
+                navigate('/login');
+            });
+            }, 2000);
+            
+        } catch (error: any) {
+            setError(error.message || 'Ошибка при смене пароля');
+            setLoading(false); // Сбрасываем loading только при ошибке
+        }
+        // При успехе loading не сбрасываем - показываем сообщение об успехе
+        };
 
   // Показываем загрузку при проверке токена
   if (!tokenChecked) {
