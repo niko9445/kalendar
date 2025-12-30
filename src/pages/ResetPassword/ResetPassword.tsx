@@ -22,25 +22,32 @@ const ResetPassword: React.FC = () => {
         if (session) {
           // Если есть сессия, значит токен валидный
           setHasToken(true);
+          console.log('✅ Session found:', session.user?.email);
         } else {
           // Проверяем URL на наличие токена
           const hash = window.location.hash;
+          console.log('URL hash:', hash);
+          
           if (hash.includes('access_token') && hash.includes('type=recovery')) {
+            console.log('✅ Recovery token found in URL');
             // Пробуем получить сессию из URL
             const { data, error } = await supabase.auth.getSession();
             if (error) {
+              console.error('❌ Session error:', error);
               setError('Ссылка для восстановления пароля недействительна или устарела');
               setTimeout(() => navigate('/login'), 3000);
             } else if (data.session) {
+              console.log('✅ Session created from token');
               setHasToken(true);
             }
           } else {
+            console.log('❌ No recovery token in URL');
             setError('Для смены пароля перейдите по ссылке из письма');
             setTimeout(() => navigate('/login'), 3000);
           }
         }
       } catch (error) {
-        console.error('Error checking token:', error);
+        console.error('❌ Error checking token:', error);
         setError('Ошибка при проверке ссылки');
       } finally {
         setTokenChecked(true);
@@ -53,6 +60,8 @@ const ResetPassword: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    console.log('🔄 Submit started, password length:', password.length);
 
     if (!password || !confirmPassword) {
       setError('Заполните все поля');
@@ -69,32 +78,42 @@ const ResetPassword: React.FC = () => {
       return;
     }
 
-     setLoading(true);
+    setLoading(true);
+    console.log('⏳ Password change in progress...');
 
-        try {
-            const { error } = await supabase.auth.updateUser({
-            password: password
-            });
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
 
-            if (error) throw error;
+      if (error) {
+        console.error('❌ Update password error:', error);
+        throw error;
+      }
 
-            // Сразу показываем успех
-            setSuccess(true);
-            
-            // Автоматически перенаправляем через 2 секунды
-            setTimeout(() => {
-            // Выходим из системы
-            supabase.auth.signOut().then(() => {
-                navigate('/login');
-            });
-            }, 2000);
-            
-        } catch (error: any) {
-            setError(error.message || 'Ошибка при смене пароля');
-            setLoading(false); // Сбрасываем loading только при ошибке
-        }
-        // При успехе loading не сбрасываем - показываем сообщение об успехе
-        };
+      console.log('✅ Password changed successfully!');
+      
+      // Устанавливаем успех
+      setSuccess(true);
+      setLoading(false); // Сбрасываем loading при успехе
+      
+      console.log('✅ Success state set to true');
+      
+      // Автоматически перенаправляем через 3 секунды
+      setTimeout(() => {
+        console.log('🔄 Redirecting to login...');
+        // Выходим из системы
+        supabase.auth.signOut().then(() => {
+          navigate('/login');
+        });
+      }, 3000);
+      
+    } catch (error: any) {
+      console.error('❌ Password change error:', error);
+      setError(error.message || 'Ошибка при смене пароля');
+      setLoading(false); // Сбрасываем loading при ошибке
+    }
+  };
 
   // Показываем загрузку при проверке токена
   if (!tokenChecked) {
@@ -132,6 +151,8 @@ const ResetPassword: React.FC = () => {
       </div>
     );
   }
+
+  console.log('🔄 Component render, success:', success, 'loading:', loading);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
