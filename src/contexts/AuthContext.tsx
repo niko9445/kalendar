@@ -1,323 +1,123 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react'
-import { User, Session } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
-import { Profile } from '../types/database.types'
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+import { Session, User } from '@supabase/supabase-js';
 
-// Типы
 interface AuthContextType {
-  user: User | null
-  profile: Profile | null
-  session: Session | null
-  isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>
-  signup: (email: string, password: string, name?: string) => Promise<{ success: boolean; message?: string }>
-  resetPassword: (email: string) => Promise<{ success: boolean; message?: string }>
-  logout: () => Promise<void>
-  updateProfile: (updates: Partial<Profile>) => Promise<void>
-  loading: boolean
+  user: User | null;
+  session: Session | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  signup: (email: string, password: string, name?: string) => Promise<{ success: boolean; message?: string }>;
+  resetPassword: (email: string) => Promise<{ success: boolean; message?: string }>;
+  logout: () => Promise<void>;
 }
 
-// Создаем контекст
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Провайдер
-interface AuthProviderProps {
-  children: ReactNode
-}
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-// Функция для получения базового URL в зависимости от окружения
-const getBaseUrl = () => {
-  // Если запущено на Vercel
-  if (window.location.hostname.includes('vercel.app')) {
-    return 'https://kalendar-lime.vercel.app'
-  }
-  // Если запущено локально
-  if (window.location.hostname === 'localhost') {
-    return 'http://localhost:3000'
-  }
-  // По умолчанию используем текущий origin
-  return window.location.origin
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  // Функция для загрузки профиля пользователя
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error) {
-        console.error('Ошибка при загрузке профиля:', error)
-        return null
-      }
-
-      setProfile(data)
-      return data
-    } catch (error) {
-      console.error('Ошибка при загрузке профиля:', error)
-      return null
-    }
-  }
-
-  // Функция для обновления профиля
-  const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Ошибка при обновлении профиля:', error)
-        throw error
-      }
-
-      setProfile(data)
-    } catch (error) {
-      console.error('Ошибка при обновлении профиля:', error)
-      throw error
-    }
-  }
-
-  // Проверяем текущую сессию при загрузке
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        setLoading(true)
-        
-        // Получаем текущую сессию
-        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
-        
-        if (sessionError) {
-          console.error('Ошибка при получении сессии:', sessionError)
-          return
-        }
+    let mounted = true;
 
-        if (currentSession) {
-          setSession(currentSession)
-          setUser(currentSession.user)
-          await fetchProfile(currentSession.user.id)
-        }
-      } catch (error) {
-        console.error('Ошибка при инициализации аутентификации:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
 
-    initializeAuth()
+      setSession(data.session);
+      setUser(data.session?.user ?? null);
+      setLoading(false);
+    };
 
-    // Слушаем изменения аутентификации
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        console.log('Auth event:', event)
-        
-        setSession(currentSession)
-        setUser(currentSession?.user ?? null)
-        
-        if (currentSession?.user) {
-          await fetchProfile(currentSession.user.id)
-        } else {
-          setProfile(null)
-        }
-        
-        setLoading(false)
-      }
-    )
+    init();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
     return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
-  // Функция входа
   const login = async (email: string, password: string) => {
-    setLoading(true)
-    
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return { success: false, message: error.message };
 
-      if (error) {
-        // Более понятные сообщения об ошибках
-        let userMessage = error.message
-        if (error.message.includes('Invalid login credentials')) {
-          userMessage = 'Неверный email или пароль'
-        } else if (error.message.includes('Email not confirmed')) {
-          userMessage = 'Пожалуйста, подтвердите ваш email. Проверьте вашу почту.'
-        } else if (error.message.includes('Network')) {
-          userMessage = 'Ошибка сети. Проверьте подключение к интернету.'
-        }
-        
-        return { 
-          success: false, 
-          message: userMessage 
-        }
-      }
-
-      return { success: true }
-    } catch (error: any) {
-      console.error('Ошибка при входе:', error)
-      return { 
-        success: false, 
-        message: error.message || 'Произошла ошибка при входе' 
-      }
-    } finally {
-      setLoading(false)
+      setUser(data.user ?? null);
+      setSession(data.session ?? null);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Ошибка при входе' };
     }
-  }
+  };
 
-  // Функция регистрации
   const signup = async (email: string, password: string, name?: string) => {
-    setLoading(true)
-    
     try {
-      const baseUrl = getBaseUrl();
-      console.log('Using base URL for registration:', baseUrl);
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            name: name || email.split('@')[0],
-          },
-          emailRedirectTo: `${baseUrl}/confirm`
-        }
-      })
+          data: name ? { name } : undefined,
+        },
+      });
+      if (error) return { success: false, message: error.message };
 
-      if (error) {
-        let userMessage = error.message
-        if (error.message.includes('User already registered')) {
-          userMessage = 'Пользователь с таким email уже зарегистрирован'
-        } else if (error.message.includes('Password')) {
-          userMessage = 'Пароль должен содержать минимум 6 символов'
-        } else if (error.message.includes('Email')) {
-          userMessage = 'Введите корректный email адрес'
-        }
-        
-        return { 
-          success: false, 
-          message: userMessage 
-        }
-      }
-
-      // Проверяем, нужно ли подтверждение email
-      if (data?.user?.identities?.length === 0) {
-        // Email уже зарегистрирован
-        return { 
-          success: false, 
-          message: 'Пользователь с таким email уже зарегистрирован'
-        };
-      }
-
-      console.log('Registration successful, confirmation email sent');
-      return { 
-        success: true, 
-        message: 'Регистрация успешна! Проверьте вашу почту для подтверждения.' 
-      }
-    } catch (error: any) {
-      console.error('Ошибка при регистрации:', error)
-      return { 
-        success: false, 
-        message: error.message || 'Произошла ошибка при регистрации' 
-      }
-    } finally {
-      setLoading(false)
+      setUser(data.user ?? null);
+      setSession(data.session ?? null);
+      return { success: true, message: 'Проверьте почту для подтверждения' };
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Ошибка при регистрации' };
     }
-  }
+  };
 
-  // Функция восстановления пароля
   const resetPassword = async (email: string) => {
-    setLoading(true)
-    
     try {
-      const baseUrl = getBaseUrl();
-      console.log('Using base URL for password reset:', baseUrl);
-      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${baseUrl}/reset-password`,
-      })
+        redirectTo: window.location.origin + '/login',
+      });
+      if (error) return { success: false, message: error.message };
 
-      if (error) {
-        let userMessage = error.message
-        if (error.message.includes('User not found')) {
-          userMessage = 'Пользователь с таким email не найден'
-        }
-        
-        return { 
-          success: false, 
-          message: userMessage 
-        }
-      }
-
-      console.log('Password reset email sent');
-      return { 
-        success: true, 
-        message: 'Инструкции по восстановлению пароля отправлены на вашу почту.' 
-      }
-    } catch (error: any) {
-      console.error('Ошибка при восстановлении пароля:', error)
-      return { 
-        success: false, 
-        message: error.message || 'Произошла ошибка при восстановлении пароля' 
-      }
-    } finally {
-      setLoading(false)
+      return { success: true, message: 'Письмо для восстановления отправлено' };
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Ошибка при восстановлении пароля' };
     }
-  }
+  };
 
-  // Функция выхода
   const logout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error('Ошибка при выходе:', error)
-      }
-    } catch (error) {
-      console.error('Ошибка при выходе:', error)
-    }
-  }
-
-  const value: AuthContextType = {
-    user,
-    profile,
-    session,
-    isAuthenticated: !!user,
-    login,
-    signup,
-    resetPassword,
-    logout,
-    updateProfile,
-    loading,
-  }
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+  };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        isAuthenticated: !!user,
+        loading,
+        login,
+        signup,
+        resetPassword,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
-  )
-}
+  );
+};
 
-// Хук для использования контекста
 export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
-}
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
+};
