@@ -6,9 +6,14 @@ import { useGoals } from '../../contexts/GoalsContext';
 import { cn } from '../../utils/cn';
 
 const Calendar: React.FC = () => {
-  const { events, deleteEvent, toggleEventComplete } = useGoals();
+  // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
+  const { getCalendarEvents, deleteEvent, toggleEventComplete } = useGoals();
   const { t, calendar: calendarT, language } = useTranslation();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
+  // Получаем только календарные события (без completion)
+  const calendarEvents = getCalendarEvents();
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -34,7 +39,8 @@ const Calendar: React.FC = () => {
     
     for (let i = 1; i <= daysInMonth; i++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-      const dayEvents = events.filter(event => event.date === dateStr);
+      // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
+      const dayEvents = calendarEvents.filter(event => event.date === dateStr);
       const isToday = dateStr === todayStr;
       
       days.push({
@@ -110,6 +116,9 @@ const Calendar: React.FC = () => {
               return <div key={`empty-${index}`} className="h-10" />;
             }
 
+            // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
+            const dayEvents = calendarEvents.filter(e => e.date === day.dateStr);
+
             return (
               <div
                 key={day.dateStr}
@@ -133,8 +142,7 @@ const Calendar: React.FC = () => {
 
                 {day.hasEvents && (
                   <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-0.5">
-                    {events
-                      .filter(e => e.date === day.dateStr)
+                    {dayEvents
                       .slice(0, 3)
                       .map((event, idx) => (
                         <div
@@ -158,14 +166,15 @@ const Calendar: React.FC = () => {
 
   const sortedEvents = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
-    return [...events].sort((a, b) => {
+    // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
+    return [...calendarEvents].sort((a, b) => {
       const isTodayA = a.date === today;
       const isTodayB = b.date === today;
       if (isTodayA && !isTodayB) return -1;
       if (!isTodayA && isTodayB) return 1;
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
-  }, [events]);
+  }, [calendarEvents]); // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -189,7 +198,8 @@ const Calendar: React.FC = () => {
     <div className="min-h-screen bg-background dark:bg-dark-background pb-20">
       <Header 
         title={calendarT('title')}
-        subtitle={t('calendar.eventsCount', { count: events.length })}
+        // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
+        subtitle={t('calendar.eventsCount', { count: calendarEvents.length })}
       />
 
       <main className="p-3">
@@ -198,11 +208,13 @@ const Calendar: React.FC = () => {
         <div className="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border">
           <div className="px-3 py-3 border-b border-border dark:border-dark-border">
             <span className="text-sm font-medium text-text-primary dark:text-dark-text-primary">
-              {t('calendar.eventsLabel', { count: events.length })}
+              {/* ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★ */}
+              {t('calendar.eventsLabel', { count: calendarEvents.length })}
             </span>
           </div>
 
           <div className="max-h-[60vh] overflow-y-auto">
+            {/* ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★ */}
             {sortedEvents.length > 0 ? (
               <div className="divide-y divide-border/50 dark:divide-dark-border/50">
                 {sortedEvents.map(event => {
@@ -283,7 +295,7 @@ const Calendar: React.FC = () => {
                           {displayText}
                         </span>
 
-                        {/* КРЕСТИК УДАЛЕНИЯ (ВСЕГДА ВИДИМЫЙ) */}
+                        {/* КРЕСТИК УДАЛЕНИЯ */}
                         <button
                           onClick={(e) => {
                             e.preventDefault();

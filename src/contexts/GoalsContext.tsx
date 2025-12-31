@@ -41,6 +41,7 @@ export interface GoalContextType {
   getEventsByGoal: (goalId: string) => CalendarEvent[]
   getEventsByDate: (date: string) => CalendarEvent[]
   getRegularEventsByGoal: (goalId: string) => CalendarEvent[]
+  getCalendarEvents: () => CalendarEvent[]
   getCompletionDays: (goalId: string) => number
   calculateGoalProgress: (goalId: string) => number
   findCompletionDay: (goalId: string, date: string) => CalendarEvent | undefined
@@ -273,6 +274,10 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     return events.filter(event => event.date === date)
   }, [events])
 
+  const getCalendarEvents = useCallback((): CalendarEvent[] => {
+    return events.filter(event => event.event_type !== 'completion')
+  }, [events])
+
   const getRegularEventsByGoal = useCallback((goalId: string): CalendarEvent[] => {
     return events.filter(event => 
       event.goal_id === goalId && event.event_type !== 'completion'
@@ -408,6 +413,7 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     getEventsByGoal,
     getEventsByDate,
     getRegularEventsByGoal,
+    getCalendarEvents,
     getCompletionDays,
     calculateGoalProgress,
     findCompletionDay,
