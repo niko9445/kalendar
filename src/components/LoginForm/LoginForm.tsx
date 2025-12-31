@@ -114,7 +114,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
     if (result.success) {
       setSuccessMessage(result.message || 'Регистрация успешна! Проверьте вашу почту.');
       // Очищаем форму после успешной регистрации
-      //Просто для исправления
       setEmail('');
       setPassword('');
       setConfirmPassword('');
