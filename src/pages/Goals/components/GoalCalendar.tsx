@@ -9,6 +9,7 @@ interface GoalCalendarProps {
     id: string;
     title: string;
     category: string;
+    categoryKey: string;
     startDate: string;
     deadline: string;
   };
@@ -397,9 +398,11 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
                   const sign = event.amount >= 0 ? '+' : '';
                   const amountText = `${sign}${formattedAmount} ${event.currency || t('calendar.defaultCurrency')}`;
                   
-                  displayText = event.title && event.title !== t('calendar.transaction') 
-                    ? `${event.title} - ${amountText}`
-                    : amountText;
+                  if (event.title && event.title.trim()) {
+                    displayText = `${event.title} - ${amountText}`;
+                  } else {
+                    displayText = amountText;
+                  }
                 }
 
                 const textColorClass = cn(
@@ -496,7 +499,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
         }}
         selectedDate={selectedDate}
         goalTitle={goal.title}
-        goalCategory={goal.category}
+        goalCategory={goal.categoryKey}
       />
     </div>
   );

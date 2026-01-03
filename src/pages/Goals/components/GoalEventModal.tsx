@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '../../../utils/cn';
 import { useTranslation } from '../../../i18n/hooks';
+import { CATEGORY_KEYS } from '../../../constants/categories';
 
 interface GoalEventModalProps {
   isOpen: boolean;
@@ -96,7 +97,8 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
     
     setIsSubmitting(true);
     
-    const isFinanceCategory = goalCategory === t('categories.finance');
+    // ИСПРАВЛЕНО: используем ключ категории, а не перевод
+    const isFinanceCategory = goalCategory === CATEGORY_KEYS.FINANCE;
     
     if (!isFinanceCategory && !title.trim()) {
       alert(t('eventModal.errors.titleRequired'));
@@ -111,7 +113,7 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
     }
 
     const eventData: any = {
-      title: isFinanceCategory ? (title.trim() || t('calendar.transaction')) : title.trim(),
+      title: title.trim(), // Просто title.trim(), без дефолтного значения!
       description: description.trim(),
       date: selectedDate || new Date().toISOString().split('T')[0],
       color,
@@ -122,6 +124,10 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
     if (isFinanceCategory) {
       eventData.amount = amount;
       eventData.currency = currency;
+      // Для финансовых событий можно оставить title пустым
+      if (!eventData.title) {
+        eventData.title = ''; // Пустая строка вместо "Transaction"
+      }
     }
 
     try {
@@ -133,7 +139,8 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
 
   if (!isOpen) return null;
 
-  const isFinanceCategory = goalCategory === t('categories.finance');
+  // ИСПРАВЛЕНО: используем ключ категории для логики отображения
+  const isFinanceCategory = goalCategory === CATEGORY_KEYS.FINANCE;
   const formattedDate = selectedDate 
     ? new Date(selectedDate).toLocaleDateString('ru-RU', {
         day: 'numeric',

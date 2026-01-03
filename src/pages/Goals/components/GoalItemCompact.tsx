@@ -9,6 +9,7 @@ interface GoalItemCompactProps {
     title: string;
     description: string;
     category: string;
+    categoryKey: string;
     progress: number;
     startDate: string;
     deadline: string;
@@ -214,7 +215,14 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
       {isExpanded && (
         <div className="animate-fade-in">
           <GoalCalendar
-            goal={goal}
+            goal={{
+              id: goal.id,
+              title: goal.title,
+              category: goal.category,          // Переведенная категория для отображения
+              categoryKey: goal.categoryKey,    // ← Ключ категории для логики
+              startDate: goal.startDate,
+              deadline: goal.deadline,
+            }}
             events={events}
             onEventSave={onEventSave}
             onEventDelete={onEventDelete}

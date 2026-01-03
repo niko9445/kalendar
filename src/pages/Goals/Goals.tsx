@@ -6,6 +6,7 @@ import AddGoalModal from './components/AddGoalModal';
 import { useGoals } from '../../contexts/GoalsContext';
 import { useTranslation } from '../../i18n/hooks';
 import { GoalInsert } from '../../types/database.types';
+import { getCategoryKey } from '../../constants/categories';
 
 const Goals: React.FC = () => {
   const {
@@ -87,19 +88,25 @@ const Goals: React.FC = () => {
 
   // Преобразуем цели для компонентов
   const transformedGoals = useMemo(() => {
-    return goalsWithCategories.map(goal => ({
-      id: goal.id,
-      title: goal.title,
-      description: goal.description || '',
-      category: goal.custom_category || goal.category?.name_ru || '',
-      progress: goal.progress,
-      startDate: goal.start_date,
-      deadline: goal.deadline,
-      priority: goal.priority,
-      completed: goal.completed,
-      isExpanded: goal.is_expanded,
-    }));
-  }, [goalsWithCategories]);
+    return goalsWithCategories.map(goal => {
+      const categoryText = goal.custom_category || goal.category?.name_ru || '';
+      const categoryKey = getCategoryKey(categoryText, t);
+      
+      return {
+        id: goal.id,
+        title: goal.title,
+        description: goal.description || '',
+        category: categoryText, // Переведенная категория для отображения
+        categoryKey: categoryKey, // Ключ категории для логики
+        progress: goal.progress,
+        startDate: goal.start_date,
+        deadline: goal.deadline,
+        priority: goal.priority,
+        completed: goal.completed,
+        isExpanded: goal.is_expanded,
+      };
+    });
+  }, [goalsWithCategories, t]);
 
   // Преобразуем события для компонентов
   const transformedEvents = useMemo(() => {
