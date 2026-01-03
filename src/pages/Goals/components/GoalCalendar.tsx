@@ -9,6 +9,8 @@ interface GoalCalendarProps {
     id: string;
     title: string;
     category: string;
+    startDate: string;
+    deadline: string;
   };
   events: Array<{
     id: string;
@@ -81,6 +83,45 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
     return days[dayIndex];
   }, [t]);
 
+  // Проверка, находится ли дата в пределах цели
+  const isDateWithinGoalRange = useCallback((dateStr: string): boolean => {
+    const goalStartDate = new Date(goal.startDate).toISOString().split('T')[0];
+    const goalDeadline = new Date(goal.deadline).toISOString().split('T')[0];
+    
+    return dateStr >= goalStartDate && dateStr <= goalDeadline;
+  }, [goal.startDate, goal.deadline]);
+
+  // Ограничения навигации: 10 лет назад и 10 лет вперед от текущей даты
+  const getMinAllowedDate = useCallback((): Date => {
+    const minDate = new Date();
+    minDate.setFullYear(minDate.getFullYear() - 10);
+    minDate.setDate(1);
+    return minDate;
+  }, []);
+
+  const getMaxAllowedDate = useCallback((): Date => {
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() + 10);
+    maxDate.setDate(1);
+    return maxDate;
+  }, []);
+
+  // Проверка, можно ли переключиться на следующий месяц
+  const canGoToNextMonth = useMemo(() => {
+    const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    const maxAllowedDate = getMaxAllowedDate();
+    
+    return nextMonth <= maxAllowedDate;
+  }, [currentDate, getMaxAllowedDate]);
+
+  // Проверка, можно ли переключиться на предыдущий месяц
+  const canGoToPrevMonth = useMemo(() => {
+    const prevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    const minAllowedDate = getMinAllowedDate();
+    
+    return prevMonth >= minAllowedDate;
+  }, [currentDate, getMinAllowedDate]);
+
   // Мемоизированная генерация календаря
   const calendarDays = useMemo(() => {
     const daysInMonth = getDaysInMonth(currentDate);
@@ -102,6 +143,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
       
       const hasCompletionDay = dayEvents.some(event => event.type === 'completion');
       const hasRegularEvents = dayEvents.some(event => event.type !== 'completion');
+      const isWithinGoalRange = isDateWithinGoalRange(dateStr);
       
       days.push({
         date: i,
@@ -111,14 +153,23 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
         isSelected,
         hasCompletionDay,
         hasRegularEvents,
+        isWithinGoalRange,
       });
     }
     
     return days;
-  }, [currentDate, events, goal.id, selectedDate]);
+  }, [currentDate, events, goal.id, selectedDate, isDateWithinGoalRange]);
 
   // Оптимизированный обработчик кликов
   const handleDateClick = useCallback((dateStr: string) => {
+    if (!isDateWithinGoalRange(dateStr)) {
+      alert(t('calendar.dateOutOfRange', { 
+        startDate: new Date(goal.startDate).toLocaleDateString(language === 'ru' ? 'ru-RU' : 'en-US'),
+        endDate: new Date(goal.deadline).toLocaleDateString(language === 'ru' ? 'ru-RU' : 'en-US')
+      }));
+      return;
+    }
+    
     if (clickTimerRef.current) {
       clearTimeout(clickTimerRef.current);
     }
@@ -147,25 +198,41 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
         setSelectedDate(dateStr);
       }
     }, 300);
-  }, [goal.id, t, toggleCompletionDay]);
+  }, [goal.id, t, toggleCompletionDay, isDateWithinGoalRange, language, goal.startDate, goal.deadline]);
 
   const handlePrevMonth = useCallback(() => {
+    if (!canGoToPrevMonth) return;
+    
     setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
     setSelectedDate(null);
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
-  }, []);
+  }, [canGoToPrevMonth]);
 
   const handleNextMonth = useCallback(() => {
+    if (!canGoToNextMonth) return;
+    
     setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
     setSelectedDate(null);
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
-  }, []);
+  }, [canGoToNextMonth]);
 
   const handleToday = useCallback(() => {
-    setCurrentDate(new Date());
+    const today = new Date();
+    const minDate = getMinAllowedDate();
+    const maxDate = getMaxAllowedDate();
+    
+    // Ограничиваем сегодняшнюю дату диапазоном 10 лет
+    if (today < minDate) {
+      setCurrentDate(minDate);
+    } else if (today > maxDate) {
+      setCurrentDate(maxDate);
+    } else {
+      setCurrentDate(today);
+    }
+    
     setSelectedDate(null);
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
-  }, []);
+  }, [getMinAllowedDate, getMaxAllowedDate]);
 
   const handleDeleteGoal = useCallback(() => {
     if (window.confirm(t('calendar.deleteGoalConfirm', { title: goal.title }))) {
@@ -195,7 +262,13 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
         <div className="flex items-center space-x-1">
           <button
             onClick={handlePrevMonth}
-            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+            disabled={!canGoToPrevMonth}
+            className={cn(
+              "p-1.5 rounded-md transition-colors",
+              canGoToPrevMonth 
+                ? "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+            )}
             aria-label={t('calendar.prevMonth')}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -212,7 +285,13 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
           
           <button
             onClick={handleNextMonth}
-            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+            disabled={!canGoToNextMonth}
+            className={cn(
+              "p-1.5 rounded-md transition-colors",
+              canGoToNextMonth 
+                ? "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+            )}
             aria-label={t('calendar.nextMonth')}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -247,19 +326,25 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
             >
               <button
                 onClick={() => handleDateClick(day.dateStr)}
+                disabled={!day.isWithinGoalRange}
                 className={cn(
                   "h-10 w-full flex items-center justify-center rounded-md",
                   "transition-all duration-150",
-                  "active:scale-95",
+                  !day.isWithinGoalRange 
+                    ? "opacity-40 cursor-not-allowed" 
+                    : "active:scale-95",
                   day.hasCompletionDay 
                     ? "bg-primary/10 dark:bg-dark-primary/20 border border-primary/20 dark:border-dark-primary/30" 
                     : "hover:bg-gray-100 dark:hover:bg-gray-800",
-                  day.isSelected && "ring-2 ring-blue-500"
+                  day.isSelected && "ring-2 ring-blue-500",
+                  !day.isWithinGoalRange && "bg-gray-100 dark:bg-gray-800"
                 )}
               >
                 <div className={cn(
                   "text-sm font-medium",
-                  day.hasCompletionDay 
+                  !day.isWithinGoalRange 
+                    ? "text-gray-400 dark:text-gray-500" 
+                    : day.hasCompletionDay 
                     ? "text-primary dark:text-dark-primary font-bold" 
                     : day.isToday
                     ? "text-primary dark:text-dark-primary font-bold"
@@ -269,7 +354,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
                 </div>
 
                 {/* Индикатор обычного события */}
-                {day.hasRegularEvents && (
+                {day.hasRegularEvents && day.isWithinGoalRange && (
                   <div className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400" />
                 )}
               </button>

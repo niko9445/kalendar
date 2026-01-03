@@ -139,9 +139,15 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Получаем максимальную дату (1 год вперед)
-  const maxDate = new Date();
-  maxDate.setFullYear(maxDate.getFullYear() + 1);
+  // Получаем диапазон дат: 10 лет назад и 10 лет вперед
+  const today = new Date();
+  
+  const minDate = new Date(today);
+  minDate.setFullYear(minDate.getFullYear() - 10);
+  const minDateString = minDate.toISOString().split('T')[0];
+  
+  const maxDate = new Date(today);
+  maxDate.setFullYear(maxDate.getFullYear() + 10);
   const maxDateString = maxDate.toISOString().split('T')[0];
 
   return (
@@ -317,7 +323,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                       type="date"
                       value={formData.startDate}
                       onChange={(e) => handleChange('startDate', e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
+                      min={minDateString}
                       max={maxDateString}
                       className={cn(
                         "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",
@@ -343,7 +349,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                       type="date"
                       value={formData.deadline}
                       onChange={(e) => handleChange('deadline', e.target.value)}
-                      min={formData.startDate || new Date().toISOString().split('T')[0]}
+                      min={formData.startDate || minDateString}
                       max={maxDateString}
                       className={cn(
                         "w-full px-3 py-2 border rounded-md text-text-primary dark:text-dark-text-primary text-sm",

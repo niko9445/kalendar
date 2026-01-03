@@ -55,6 +55,8 @@
     "today": "Сегодня",
     "month": "Месяц",
     "week": "Неделя",
+    "dateOutOfRange": "Эта дата вне диапазона цели",
+    "dateRange": "Диапазон: {start} - {end}",
     "fullCalendar": {
       "title": "Общий календарь"
     },

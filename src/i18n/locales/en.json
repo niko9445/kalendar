@@ -54,6 +54,8 @@
     "noEvents": "No events",
     "today": "Today",
     "month": "Month",
+    "dateOutOfRange": "This date is outside the goal range",
+    "dateRange": "Range: {start} - {end}",
     "week": "Week",
     "fullCalendar": {
       "title": "Full Calendar"

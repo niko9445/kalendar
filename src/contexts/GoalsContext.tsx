@@ -70,6 +70,156 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Функция для расчета диапазона дат всех целей
+  const getGoalsDateRange = useCallback((goalsList: GoalWithCategory[]): { startDate: string, endDate: string } | null => {
+    if (goalsList.length === 0) return null
+
+    // Находим минимальную start_date и максимальную deadline
+    const startDates = goalsList.map(goal => new Date(goal.start_date).getTime())
+    const endDates = goalsList.map(goal => new Date(goal.deadline).getTime())
+    
+    const minStartDate = new Date(Math.min(...startDates))
+    const maxDeadline = new Date(Math.max(...endDates))
+    
+    // Добавляем буфер в 1 месяц до и после
+    minStartDate.setMonth(minStartDate.getMonth() - 1)
+    maxDeadline.setMonth(maxDeadline.getMonth() + 1)
+    
+    return {
+      startDate: minStartDate.toISOString().split('T')[0],
+      endDate: maxDeadline.toISOString().split('T')[0]
+    }
+  }, [])
+
+  // Вспомогательные методы
+  const getEventsByGoal = useCallback((goalId: string): CalendarEvent[] => {
+    return events.filter(event => event.goal_id === goalId)
+  }, [events])
+
+  const getEventsByDate = useCallback((date: string): CalendarEvent[] => {
+    return events.filter(event => event.date === date)
+  }, [events])
+
+  const getCalendarEvents = useCallback((): CalendarEvent[] => {
+    return events.filter(event => event.event_type !== 'completion')
+  }, [events])
+
+  const getRegularEventsByGoal = useCallback((goalId: string): CalendarEvent[] => {
+    return events.filter(event => 
+      event.goal_id === goalId && event.event_type !== 'completion'
+    )
+  }, [events])
+
+  const getCompletionDays = useCallback((goalId: string): number => {
+    const goal = goals.find(g => g.id === goalId)
+    if (!goal) return 0
+
+    // Считаем уникальные дни выполнения в рамках цели
+    const completionDays = events
+      .filter(event => 
+        event.goal_id === goalId && 
+        event.event_type === 'completion'
+      )
+      .map(event => event.date)
+    
+    const uniqueDates = new Set<string>();
+    completionDays.forEach(date => uniqueDates.add(date));
+    return uniqueDates.size;
+  }, [goals, events])
+
+  const calculateGoalProgress = useCallback((goalId: string): number => {
+    const goal = goals.find(g => g.id === goalId)
+    if (!goal) return 0
+
+    const startDate = new Date(goal.start_date)
+    const endDate = new Date(goal.deadline)
+    
+    const totalDays = Math.ceil(
+      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+    ) + 1
+    
+    if (totalDays <= 0) return 0
+    
+    const completionDays = getCompletionDays(goalId)
+    const progress = Math.round((completionDays / totalDays) * 100)
+    
+    return Math.max(0, Math.min(progress, 100))
+  }, [goals, getCompletionDays])
+
+  const findCompletionDay = useCallback((goalId: string, date: string): CalendarEvent | undefined => {
+    return events.find(event => 
+      event.goal_id === goalId && 
+      event.date === date && 
+      event.event_type === 'completion'
+    )
+  }, [events])
+
+  const isCompletionDayEvent = useCallback((event: CalendarEvent): boolean => {
+    return event.event_type === 'completion'
+  }, [])
+
+  // Методы обновления данных
+  const refreshGoals = useCallback(async () => {
+    if (!user) return
+    try {
+      const goalsData = await goalsApi.getGoals(user.id)
+      setGoalsWithCategories(goalsData)
+      setGoals(goalsData.map(goal => ({
+        id: goal.id,
+        user_id: goal.user_id,
+        title: goal.title,
+        description: goal.description,
+        category_id: goal.category_id,
+        custom_category: goal.custom_category,
+        progress: goal.progress,
+        start_date: goal.start_date,
+        deadline: goal.deadline,
+        priority: goal.priority,
+        completed: goal.completed,
+        is_expanded: goal.is_expanded,
+        created_at: goal.created_at,
+        updated_at: goal.updated_at
+      })))
+
+      // После обновления целей обновляем диапазон событий
+      if (goalsData.length > 0) {
+        const dateRange = getGoalsDateRange(goalsData)
+        if (dateRange) {
+          const eventsData = await eventsApi.getEventsInRange(
+            user.id,
+            dateRange.startDate,
+            dateRange.endDate
+          )
+          setEvents(eventsData)
+        }
+      }
+    } catch (err: any) {
+      console.error('Ошибка при обновлении целей:', err)
+      throw err
+    }
+  }, [user, getGoalsDateRange])
+
+  const refreshEvents = useCallback(async () => {
+    if (!user) return
+    try {
+      // Загружаем события для всех текущих целей
+      if (goalsWithCategories.length > 0) {
+        const dateRange = getGoalsDateRange(goalsWithCategories)
+        if (dateRange) {
+          const eventsData = await eventsApi.getEventsInRange(
+            user.id,
+            dateRange.startDate,
+            dateRange.endDate
+          )
+          setEvents(eventsData)
+        }
+      }
+    } catch (err: any) {
+      console.error('Ошибка при обновлении событий:', err)
+      throw err
+    }
+  }, [user, goalsWithCategories, getGoalsDateRange])
+
   // Загрузка всех данных
   const loadAllData = useCallback(async () => {
     if (!user) {
@@ -85,15 +235,10 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     setError(null)
 
     try {
-      // Параллельная загрузка данных
-      const [categoriesData, goalsData, eventsData] = await Promise.all([
+      // Параллельная загрузка целей и категорий
+      const [categoriesData, goalsData] = await Promise.all([
         goalsApi.getCategories(),
-        goalsApi.getGoals(user.id),
-        eventsApi.getEventsInRange(
-          user.id,
-          new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().split('T')[0],
-          new Date(new Date().getFullYear(), new Date().getMonth() + 2, 0).toISOString().split('T')[0]
-        )
+        goalsApi.getGoals(user.id)
       ])
 
       setCategories(categoriesData)
@@ -114,14 +259,36 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
         created_at: goal.created_at,
         updated_at: goal.updated_at
       })))
-      setEvents(eventsData)
+
+      // Загружаем события для всех целей
+      if (goalsData.length > 0) {
+        const dateRange = getGoalsDateRange(goalsData)
+        
+        if (dateRange) {
+          const eventsData = await eventsApi.getEventsInRange(
+            user.id,
+            dateRange.startDate,
+            dateRange.endDate
+          )
+          setEvents(eventsData)
+        } else {
+          setEvents([])
+        }
+      } else {
+        setEvents([])
+      }
     } catch (err: any) {
       console.error('Ошибка при загрузке данных:', err)
       setError(err.message || 'Ошибка при загрузке данных')
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [user, getGoalsDateRange])
+
+  const refreshAll = useCallback(async () => {
+    await loadAllData()
+  }, [loadAllData])
+
 
   // Загрузка данных при изменении пользователя
   useEffect(() => {
@@ -256,133 +423,42 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     try {
       const result = await eventsApi.toggleCompletionDay(goalId, date, user.id, title)
       
-      // Перезагружаем данные для обновления прогресса
-      await loadAllData()
+      // Добавляем/удаляем из локального состояния
+      if (result === 'deleted') {
+        // Находим и удаляем событие-день выполнения
+        setEvents(prev => prev.filter(event => 
+          !(event.goal_id === goalId && event.date === date && event.event_type === 'completion')
+        ))
+      } else {
+        // Создаем новое событие для локального состояния
+        const newEvent: CalendarEvent = {
+          id: `temp-${Date.now()}`,
+          goal_id: goalId,
+          user_id: user.id,
+          title,
+          description: '',
+          date,
+          color: '#3b82f6',
+          event_type: 'completion',
+          completed: true,
+          amount: null,
+          currency: 'RUB',
+          is_completion_day: true,
+          completion_day_id: `completion-${goalId}-${date}`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+        setEvents(prev => [...prev, newEvent])
+      }
+      
+      // Обновляем прогресс цели
+      await refreshGoals()
       return result
     } catch (err: any) {
       console.error('Ошибка при переключении дня выполнения:', err)
       throw err
     }
-  }, [user, loadAllData])
-
-  // Вспомогательные методы
-  const getEventsByGoal = useCallback((goalId: string): CalendarEvent[] => {
-    return events.filter(event => event.goal_id === goalId)
-  }, [events])
-
-  const getEventsByDate = useCallback((date: string): CalendarEvent[] => {
-    return events.filter(event => event.date === date)
-  }, [events])
-
-  const getCalendarEvents = useCallback((): CalendarEvent[] => {
-    return events.filter(event => event.event_type !== 'completion')
-  }, [events])
-
-  const getRegularEventsByGoal = useCallback((goalId: string): CalendarEvent[] => {
-    return events.filter(event => 
-      event.goal_id === goalId && event.event_type !== 'completion'
-    )
-  }, [events])
-
-  const getCompletionDays = useCallback((goalId: string): number => {
-    const goal = goals.find(g => g.id === goalId)
-    if (!goal) return 0
-
-    const startDate = new Date(goal.start_date)
-    const endDate = new Date(goal.deadline)
-    
-    // Считаем уникальные дни выполнения в рамках цели
-    const completionDays = events
-      .filter(event => 
-        event.goal_id === goalId && 
-        event.event_type === 'completion' &&
-        new Date(event.date) >= startDate &&
-        new Date(event.date) <= endDate
-      )
-      .map(event => event.date)
-    
-    const uniqueDates = new Set<string>();
-      completionDays.forEach(date => uniqueDates.add(date));
-      return uniqueDates.size;
-  }, [goals, events])
-
-  const calculateGoalProgress = useCallback((goalId: string): number => {
-    const goal = goals.find(g => g.id === goalId)
-    if (!goal) return 0
-
-    const startDate = new Date(goal.start_date)
-    const endDate = new Date(goal.deadline)
-    
-    const totalDays = Math.ceil(
-      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-    ) + 1
-    
-    if (totalDays <= 0) return 0
-    
-    const completionDays = getCompletionDays(goalId)
-    const progress = Math.round((completionDays / totalDays) * 100)
-    
-    return Math.max(0, Math.min(progress, 100))
-  }, [goals, getCompletionDays])
-
-  const findCompletionDay = useCallback((goalId: string, date: string): CalendarEvent | undefined => {
-    return events.find(event => 
-      event.goal_id === goalId && 
-      event.date === date && 
-      event.event_type === 'completion'
-    )
-  }, [events])
-
-  const isCompletionDayEvent = useCallback((event: CalendarEvent): boolean => {
-    return event.event_type === 'completion'
-  }, [])
-
-  // Методы обновления данных
-  const refreshGoals = useCallback(async () => {
-    if (!user) return
-    try {
-      const goalsData = await goalsApi.getGoals(user.id)
-      setGoalsWithCategories(goalsData)
-      setGoals(goalsData.map(goal => ({
-        id: goal.id,
-        user_id: goal.user_id,
-        title: goal.title,
-        description: goal.description,
-        category_id: goal.category_id,
-        custom_category: goal.custom_category,
-        progress: goal.progress,
-        start_date: goal.start_date,
-        deadline: goal.deadline,
-        priority: goal.priority,
-        completed: goal.completed,
-        is_expanded: goal.is_expanded,
-        created_at: goal.created_at,
-        updated_at: goal.updated_at
-      })))
-    } catch (err: any) {
-      console.error('Ошибка при обновлении целей:', err)
-      throw err
-    }
-  }, [user])
-
-  const refreshEvents = useCallback(async () => {
-    if (!user) return
-    try {
-      const eventsData = await eventsApi.getEventsInRange(
-        user.id,
-        new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().split('T')[0],
-        new Date(new Date().getFullYear(), new Date().getMonth() + 2, 0).toISOString().split('T')[0]
-      )
-      setEvents(eventsData)
-    } catch (err: any) {
-      console.error('Ошибка при обновлении событий:', err)
-      throw err
-    }
-  }, [user])
-
-  const refreshAll = useCallback(async () => {
-    await loadAllData()
-  }, [loadAllData])
+  }, [user, refreshGoals])
 
   // Значение контекста
   const value: GoalContextType = {
