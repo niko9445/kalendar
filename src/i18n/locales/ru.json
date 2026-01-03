@@ -45,7 +45,9 @@
     "allDataDeleted": "Все данные удалены",
     "logout": "Выйти из аккаунта",
     "logoutDescription": "Сессия будет завершена",
-    "logoutConfirm": "Вы уверены, что хотите выйти?"
+    "logoutConfirm": "Вы уверены, что хотите выйти?",
+    "addName": "Добавьте имя",
+    "namePlaceholder": "Введите ваше имя"
   },
   "calendar": {
     "title": "Календарь",
