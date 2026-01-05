@@ -367,12 +367,19 @@ const Calendar: React.FC = () => {
                 )}
                 <button
                   onClick={handleAddEventClick}
-                  className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors border border-blue-200 dark:border-blue-700/30"
+                  className="w-8 h-8 flex items-center justify-center rounded-md text-text-primary dark:text-dark-text-primary hover:text-primary dark:hover:text-dark-primary hover:bg-surface/50 dark:hover:bg-dark-surface/50 transition-colors"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                   title={t('calendar.addEvent')}
                   aria-label={t('calendar.addEvent')}
                 >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  <svg 
+                    className="w-5 h-5" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth={2.5}
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                   </svg>
                 </button>
               </div>
