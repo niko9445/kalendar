@@ -124,15 +124,23 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
             
             {/* Основная информация */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between mb-1 gap-2">
                 <h3 className={cn(
-                  "text-sm font-medium truncate",
+                  "text-sm font-medium break-words min-w-0",
                   goal.completed ? "text-text-secondary dark:text-dark-text-secondary line-through" : "text-text-primary dark:text-dark-text-primary"
                 )}>
-                  {goal.title}
+                  {/* Заменяем truncate на break-words */}
+                  <span className="break-words line-clamp-2" style={{ 
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                  }}>
+                    {goal.title}
+                  </span>
                 </h3>
                 <span className={cn(
-                  "px-2 py-0.5 rounded-full text-xs font-medium ml-2 flex-shrink-0",
+                  "px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0",
                   getPriorityColor(goal.priority)
                 )}>
                   {getPriorityLabel(goal.priority)}
@@ -141,30 +149,38 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
               
               {/* Описание (только если есть) */}
               {goal.description && (
-                <p className="text-xs text-text-secondary dark:text-dark-text-secondary mb-2 line-clamp-1">
-                  {goal.description}
-                </p>
+                <div className="mb-2">
+                  <p className="text-xs text-text-secondary dark:text-dark-text-secondary break-words" style={{ 
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
+                    {goal.description}
+                  </p>
+                </div>
               )}
               
               {/* Прогресс бар и даты */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 min-w-0">
                   {/* Прогресс бар - мини */}
-                  <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                  <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 flex-shrink-0">
                     <div 
                       className="bg-primary dark:bg-dark-primary h-1.5 rounded-full transition-all duration-300"
                       style={{ width: `${goal.progress}%` }}
                     />
                   </div>
-                  <span className="text-xs font-medium text-text-secondary dark:text-dark-text-secondary">
+                  <span className="text-xs font-medium text-text-secondary dark:text-dark-text-secondary flex-shrink-0">
                     {goal.progress}%
                   </span>
                 </div>
                 
                 {/* Даты в формате 01.01.25 */}
-                <div className="flex items-center text-xs text-text-secondary dark:text-dark-text-secondary">
+                <div className="flex items-center text-xs text-text-secondary dark:text-dark-text-secondary flex-shrink-0">
                   <div className="flex items-center">
-                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <span className="font-medium">
@@ -193,12 +209,12 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
         
         {/* Категория и события */}
         <div className="flex items-center justify-between mt-2 text-xs">
-          <span className="px-2 py-0.5 bg-surface dark:bg-dark-surface text-text-secondary dark:text-dark-text-secondary rounded">
+          <span className="px-2 py-0.5 bg-surface dark:bg-dark-surface text-text-secondary dark:text-dark-text-secondary rounded break-words line-clamp-1">
             {goal.category}
           </span>
           <div className="flex items-center space-x-2">
             {totalEvents > 0 && (
-              <div className="flex items-center">
+              <div className="flex items-center flex-shrink-0">
                 <svg className="w-3 h-3 mr-1 text-text-secondary dark:text-dark-text-secondary" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.801 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.801 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
                 </svg>
@@ -218,8 +234,8 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
             goal={{
               id: goal.id,
               title: goal.title,
-              category: goal.category,          // Переведенная категория для отображения
-              categoryKey: goal.categoryKey,    // ← Ключ категории для логики
+              category: goal.category,
+              categoryKey: goal.categoryKey,
               startDate: goal.startDate,
               deadline: goal.deadline,
             }}

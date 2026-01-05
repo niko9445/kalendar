@@ -34,7 +34,7 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('bg-blue-500');
   const [amount, setAmount] = useState<number | undefined>(undefined);
-  const [currency, setCurrency] = useState('RUB');
+  const [currency, setCurrency] = useState('BYN');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const COLOR_OPTIONS = [
@@ -47,9 +47,9 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
   ];
 
   const CURRENCY_OPTIONS = [
+    { value: 'BYN', label: 'BYN' },
     { value: 'RUB', label: 'RUB' },
     { value: 'USD', label: 'USD' },
-    { value: 'BYN', label: 'BYN' },
   ];
 
   // Функция для осветления цвета
@@ -86,7 +86,7 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
       setDescription('');
       setColor('bg-blue-500');
       setAmount(undefined);
-      setCurrency('RUB');
+      setCurrency('BYN');
       setIsSubmitting(false);
     }
   }, [isOpen]);

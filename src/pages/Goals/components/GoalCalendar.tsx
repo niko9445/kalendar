@@ -437,10 +437,16 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
                         )}
                       </button>
                       
-                      {/* Отображение текста */}
-                      <span className={cn("text-xs truncate", textColorClass)}>
+                      {/* Отображение текста - ОБНОВЛЕНО */}
+                      <div className={cn("text-xs min-w-0", textColorClass)} style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        wordBreak: 'break-word'
+                      }}>
                         {displayText}
-                      </span>
+                      </div>
                     </div>
                     
                     {/* Кнопка удаления */}

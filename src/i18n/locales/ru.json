@@ -17,7 +17,24 @@
     "login": "Войти",
     "logout": "Выйти",
     "welcome": "Добро пожаловать, {{name}}!",
-    "error": "Ошибка авторизации"
+    "error": "Ошибка авторизации",
+    "errors": {
+      "invalidCredentials": "Неверный email или пароль",
+      "emailNotConfirmed": "Подтвердите email перед входом",
+      "tooManyRequests": "Слишком много попыток. Попробуйте позже",
+      "userNotFound": "Пользователь не найден",
+      "weakPassword": "Пароль должен содержать минимум 6 символов",
+      "emailAlreadyExists": "Этот email уже зарегистрирован",
+      "invalidEmail": "Неверный формат email",
+      "genericError": "Произошла ошибка. Попробуйте еще раз",
+      "networkError": "Ошибка сети. Проверьте подключение",
+      "sessionExpired": "Сессия истекла. Войдите снова"
+    },
+    "success": {
+      "login": "Вход выполнен успешно",
+      "register": "Регистрация успешна! Проверьте почту",
+      "passwordReset": "Инструкции отправлены на ваш email"
+    }
   },
   "navigation": {
     "calendar": "Календарь",
@@ -225,6 +242,7 @@
     "register": "Создать аккаунт",
     "forgotPassword": "Забыли пароль?",
     "signingIn": "Вход...",
+    "nowYouCanLogin": "Теперь вы можете войти в систему",
     "errors": {
       "fillAllFields": "Заполните все поля",
       "loginFailed": "Ошибка при входе",

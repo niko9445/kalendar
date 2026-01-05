@@ -286,12 +286,18 @@ const Calendar: React.FC = () => {
                         />
 
                         {/* Дата */}
-                        <span className="text-xs text-text-secondary dark:text-dark-text-secondary min-w-[60px]">
+                        <span className="text-xs text-text-secondary dark:text-dark-text-secondary min-w-[60px] flex-shrink-0">
                           {formatDate(event.date)}
                         </span>
 
-                        {/* Название */}
-                        <span className={cn("text-sm flex-1 truncate", textColorClass)}>
+                        {/* Название - ОБНОВЛЕНО */}
+                        <span className={cn("text-sm flex-1 min-w-0", textColorClass)} style={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          wordBreak: 'break-word'
+                        }}>
                           {displayText}
                         </span>
 
@@ -303,7 +309,7 @@ const Calendar: React.FC = () => {
                             deleteEvent(event.id);
                           }}
                           onMouseDown={(e) => e.preventDefault()}
-                          className="p-1 text-text-tertiary dark:text-dark-text-tertiary hover:text-error dark:hover:text-dark-error active:scale-95 transition-colors"
+                          className="p-1 text-text-tertiary dark:text-dark-text-tertiary hover:text-error dark:hover:text-dark-error active:scale-95 transition-colors flex-shrink-0"
                           title={t('common.delete')}
                           aria-label={t('common.delete')}
                         >

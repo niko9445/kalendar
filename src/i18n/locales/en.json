@@ -17,7 +17,24 @@
     "login": "Sign In",
     "logout": "Logout",
     "welcome": "Welcome, {{name}}!",
-    "error": "Authorization error"
+    "error": "Authorization error",
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "emailNotConfirmed": "Confirm email before login",
+      "tooManyRequests": "Too many attempts. Try later",
+      "userNotFound": "User not found",
+      "weakPassword": "Password must be at least 6 characters",
+      "emailAlreadyExists": "Email already registered",
+      "invalidEmail": "Invalid email format",
+      "genericError": "An error occurred. Please try again",
+      "networkError": "Network error. Check connection",
+      "sessionExpired": "Session expired. Login again"
+    },
+    "success": {
+      "login": "Login successful",
+      "register": "Registration successful! Check your email",
+      "passwordReset": "Instructions sent to your email"
+    }
   },
   "navigation": {
     "calendar": "Calendar",
@@ -225,6 +242,7 @@
     "register": "Create account",
     "forgotPassword": "Forgot password?",
     "signingIn": "Signing in...",
+    "nowYouCanLogin": "Now you can login",
     "errors": {
       "fillAllFields": "Please fill all fields",
       "loginFailed": "Login failed",
