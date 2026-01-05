@@ -41,7 +41,13 @@
     "goals": "Цели",
     "add": "Добавить",
     "settings": "Настройки",
-    "home": "Главная"
+    "home": "Главная",
+    "clearSelection": "Очистить выбор",
+    "eventsForDate": "События за",
+    "viewingDateEvents": "Просмотр событий выбранной даты",
+    "viewingAllEvents": "Просмотр всех событий",
+    "showAll": "Показать все",
+    "noEventsForDate": "Нет событий на выбранную дату"
   },
   "settings": {
     "title": "Настройки",
@@ -70,6 +76,7 @@
     "title": "Календарь",
     "eventsLabel": "События ({{count}})",
     "addEvent": "Добавить событие",
+    "generalEvent": "Общее событие",
     "noEvents": "Событий нет",
     "today": "Сегодня",
     "month": "Месяц",
@@ -102,8 +109,14 @@
     "deleteGoalButton": "Удалить цель",
     "defaultCurrency": "RUB",
     "transaction": "Транзакция",
-    "hint": "💡 Нажмите на дату дважды - отметить день выполнения, трижды - добавить событие"
-  },
+    "hint": "💡 Нажмите на дату дважды - отметить день выполнения, трижды - добавить событие",
+    "clearSelection": "Очистить выбор",
+    "eventsForDate": "События на",
+    "viewingDateEvents": "Просмотр событий выбранной даты",
+    "viewingAllEvents": "Просмотр всех событий",
+    "showAll": "Показать все",
+    "noEventsForDate": "Нет событий на выбранную дату"
+},
   "goals": {
     "title": "Мои цели",
     "activeGoals": "{{count}} активных целей",

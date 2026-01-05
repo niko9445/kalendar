@@ -69,6 +69,7 @@
   "calendar": {
     "title": "Calendar",
     "addEvent": "Add event",
+    "generalEvent": "General event",
     "eventsLabel": "Events ({{count}})",
     "noEvents": "No events",
     "today": "Today",
@@ -76,6 +77,12 @@
     "dateOutOfRange": "This date is outside the goal range",
     "dateRange": "Range: {start} - {end}",
     "week": "Week",
+    "clearSelection": "Clear selection",
+    "eventsForDate": "Events for",
+    "viewingDateEvents": "Viewing events for selected date",
+    "viewingAllEvents": "Viewing all events",
+    "showAll": "Show all",
+    "noEventsForDate": "No events for selected date",
     "fullCalendar": {
       "title": "Full Calendar"
     },

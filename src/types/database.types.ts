@@ -210,6 +210,58 @@ export interface Database {
           }
         ]
       }
+      general_calendar_events: { // НОВАЯ ТАБЛИЦА
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          description: string | null
+          date: string
+          color: string
+          event_type: 'work' | 'personal' | 'health' | 'learning' | 'finance' | 'general'
+          completed: boolean
+          amount: number | null
+          currency: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          description?: string | null
+          date: string
+          color?: string
+          event_type?: 'work' | 'personal' | 'health' | 'learning' | 'finance' | 'general'
+          completed?: boolean
+          amount?: number | null
+          currency?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          description?: string | null
+          date?: string
+          color?: string
+          event_type?: 'work' | 'personal' | 'health' | 'learning' | 'finance' | 'general'
+          completed?: boolean
+          amount?: number | null
+          currency?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "general_calendar_events_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       user_settings: {
         Row: {
           id: string
@@ -279,5 +331,8 @@ export type GoalUpdate = Database['public']['Tables']['goals']['Update']
 export type CalendarEvent = Database['public']['Tables']['calendar_events']['Row']
 export type CalendarEventInsert = Database['public']['Tables']['calendar_events']['Insert']
 export type CalendarEventUpdate = Database['public']['Tables']['calendar_events']['Update']
+export type GeneralCalendarEvent = Database['public']['Tables']['general_calendar_events']['Row'] // НОВЫЙ ТИП
+export type GeneralCalendarEventInsert = Database['public']['Tables']['general_calendar_events']['Insert'] // НОВЫЙ ТИП
+export type GeneralCalendarEventUpdate = Database['public']['Tables']['general_calendar_events']['Update'] // НОВЫЙ ТИП
 export type GoalCategory = Database['public']['Tables']['goal_categories']['Row']
 export type UserSettings = Database['public']['Tables']['user_settings']['Row']

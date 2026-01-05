@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { useAuth } from './AuthContext'
 import { goalsApi, GoalWithCategory } from '../lib/db/goals'
-import { eventsApi, CalendarEventWithGoal } from '../lib/db/events'
+import { eventsApi } from '../lib/db/events'
+import { generalEventsApi } from '../lib/db/general-events'
 import { 
   Goal, 
   GoalInsert, 
@@ -9,14 +10,38 @@ import {
   CalendarEvent, 
   CalendarEventInsert, 
   CalendarEventUpdate,
+  GeneralCalendarEvent,
+  GeneralCalendarEventInsert,
+  GeneralCalendarEventUpdate,
   GoalCategory 
 } from '../types/database.types'
+
+// Расширенный тип события с названием цели
+export interface CalendarEventWithGoalTitle extends CalendarEvent {
+  goalTitle?: string | null
+}
+
+// Объединенный тип для всех событий (целевые + общие)
+export type AllCalendarEvent = (CalendarEventWithGoalTitle | GeneralCalendarEvent) & {
+  id: string;
+  date: string;
+  title: string;
+  description: string | null;
+  color: string;
+  event_type: string;
+  completed: boolean;
+  amount: number | null;
+  currency: string;
+  created_at: string;
+  updated_at: string;
+}
 
 // Типы для контекста
 export interface GoalContextType {
   // Данные
   goals: Goal[]
   events: CalendarEvent[]
+  generalEvents: GeneralCalendarEvent[]
   categories: GoalCategory[]
   goalsWithCategories: GoalWithCategory[]
   
@@ -30,26 +55,37 @@ export interface GoalContextType {
   deleteGoal: (id: string) => Promise<void>
   toggleGoalComplete: (id: string) => Promise<void>
   
-  // Операции с событиями
+  // Операции с целевыми событиями
   addEvent: (eventData: Omit<CalendarEventInsert, 'user_id'>) => Promise<CalendarEvent>
   updateEvent: (id: string, updates: CalendarEventUpdate) => Promise<CalendarEvent>
   deleteEvent: (id: string) => Promise<void>
   toggleEventComplete: (id: string) => Promise<void>
   toggleCompletionDay: (goalId: string, date: string, title: string) => Promise<'created' | 'deleted'>
   
+  // Операции с общими событиями
+  addGeneralEvent: (eventData: Omit<GeneralCalendarEventInsert, 'user_id'>) => Promise<GeneralCalendarEvent>
+  updateGeneralEvent: (id: string, updates: GeneralCalendarEventUpdate) => Promise<GeneralCalendarEvent>
+  deleteGeneralEvent: (id: string) => Promise<void>
+  toggleGeneralEventComplete: (id: string) => Promise<void>
+  
   // Вспомогательные методы
   getEventsByGoal: (goalId: string) => CalendarEvent[]
   getEventsByDate: (date: string) => CalendarEvent[]
   getRegularEventsByGoal: (goalId: string) => CalendarEvent[]
-  getCalendarEvents: () => CalendarEvent[]
+  getCalendarEvents: () => CalendarEventWithGoalTitle[]
+  getGeneralEvents: () => GeneralCalendarEvent[]
+  getAllEvents: () => AllCalendarEvent[]
   getCompletionDays: (goalId: string) => number
   calculateGoalProgress: (goalId: string) => number
   findCompletionDay: (goalId: string, date: string) => CalendarEvent | undefined
   isCompletionDayEvent: (event: CalendarEvent) => boolean
+  getGoalTitleById: (goalId: string) => string | null
+  formatEventDate: (dateStr: string) => string
   
   // Обновление данных
   refreshGoals: () => Promise<void>
   refreshEvents: () => Promise<void>
+  refreshGeneralEvents: () => Promise<void>
   refreshAll: () => Promise<void>
 }
 
@@ -66,6 +102,7 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
   const [goals, setGoals] = useState<Goal[]>([])
   const [goalsWithCategories, setGoalsWithCategories] = useState<GoalWithCategory[]>([])
   const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [generalEvents, setGeneralEvents] = useState<GeneralCalendarEvent[]>([])
   const [categories, setCategories] = useState<GoalCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -74,14 +111,12 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
   const getGoalsDateRange = useCallback((goalsList: GoalWithCategory[]): { startDate: string, endDate: string } | null => {
     if (goalsList.length === 0) return null
 
-    // Находим минимальную start_date и максимальную deadline
     const startDates = goalsList.map(goal => new Date(goal.start_date).getTime())
     const endDates = goalsList.map(goal => new Date(goal.deadline).getTime())
     
     const minStartDate = new Date(Math.min(...startDates))
     const maxDeadline = new Date(Math.max(...endDates))
     
-    // Добавляем буфер в 1 месяц до и после
     minStartDate.setMonth(minStartDate.getMonth() - 1)
     maxDeadline.setMonth(maxDeadline.getMonth() + 1)
     
@@ -89,6 +124,38 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
       startDate: minStartDate.toISOString().split('T')[0],
       endDate: maxDeadline.toISOString().split('T')[0]
     }
+  }, [])
+
+  // Метод для получения названия цели по ID
+  const getGoalTitleById = useCallback((goalId: string): string | null => {
+    const goal = goalsWithCategories.find(g => g.id === goalId)
+    return goal?.title || null
+  }, [goalsWithCategories])
+
+  // Метод для форматирования даты
+  const formatEventDate = useCallback((dateStr: string): string => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Проверяем сегодня/завтра/вчера
+    if (date.toDateString() === today.toDateString()) {
+      return 'Сегодня';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return 'Завтра';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Вчера';
+    }
+
+    // Форматируем дату
+    return date.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
   }, [])
 
   // Вспомогательные методы
@@ -100,9 +167,31 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     return events.filter(event => event.date === date)
   }, [events])
 
-  const getCalendarEvents = useCallback((): CalendarEvent[] => {
-    return events.filter(event => event.event_type !== 'completion')
-  }, [events])
+  const getCalendarEvents = useCallback((): CalendarEventWithGoalTitle[] => {
+    return events
+      .filter(event => event.event_type !== 'completion')
+      .map(event => ({
+        ...event,
+        goalTitle: getGoalTitleById(event.goal_id)
+      }))
+  }, [events, getGoalTitleById])
+
+  const getGeneralEvents = useCallback((): GeneralCalendarEvent[] => {
+    return generalEvents
+  }, [generalEvents])
+
+  const getAllEvents = useCallback((): AllCalendarEvent[] => {
+    const targetEvents = events
+      .filter(event => event.event_type !== 'completion')
+      .map(event => ({
+        ...event,
+        goalTitle: getGoalTitleById(event.goal_id)
+      }))
+    
+    return [...targetEvents, ...generalEvents].sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    ) as AllCalendarEvent[]
+  }, [events, generalEvents, getGoalTitleById])
 
   const getRegularEventsByGoal = useCallback((goalId: string): CalendarEvent[] => {
     return events.filter(event => 
@@ -114,7 +203,6 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     const goal = goals.find(g => g.id === goalId)
     if (!goal) return 0
 
-    // Считаем уникальные дни выполнения в рамках цели
     const completionDays = events
       .filter(event => 
         event.goal_id === goalId && 
@@ -180,29 +268,15 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
         created_at: goal.created_at,
         updated_at: goal.updated_at
       })))
-
-      // После обновления целей обновляем диапазон событий
-      if (goalsData.length > 0) {
-        const dateRange = getGoalsDateRange(goalsData)
-        if (dateRange) {
-          const eventsData = await eventsApi.getEventsInRange(
-            user.id,
-            dateRange.startDate,
-            dateRange.endDate
-          )
-          setEvents(eventsData)
-        }
-      }
     } catch (err: any) {
       console.error('Ошибка при обновлении целей:', err)
       throw err
     }
-  }, [user, getGoalsDateRange])
+  }, [user])
 
   const refreshEvents = useCallback(async () => {
     if (!user) return
     try {
-      // Загружаем события для всех текущих целей
       if (goalsWithCategories.length > 0) {
         const dateRange = getGoalsDateRange(goalsWithCategories)
         if (dateRange) {
@@ -213,6 +287,8 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
           )
           setEvents(eventsData)
         }
+      } else {
+        setEvents([])
       }
     } catch (err: any) {
       console.error('Ошибка при обновлении событий:', err)
@@ -220,12 +296,34 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     }
   }, [user, goalsWithCategories, getGoalsDateRange])
 
+  const refreshGeneralEvents = useCallback(async () => {
+    if (!user) return
+    try {
+      const today = new Date()
+      const startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1)
+        .toISOString().split('T')[0]
+      const endDate = new Date(today.getFullYear(), today.getMonth() + 12, 0)
+        .toISOString().split('T')[0]
+      
+      const generalEventsData = await generalEventsApi.getEventsInRange(
+        user.id,
+        startDate,
+        endDate
+      )
+      setGeneralEvents(generalEventsData)
+    } catch (err: any) {
+      console.error('Ошибка при обновлении общих событий:', err)
+      throw err
+    }
+  }, [user])
+
   // Загрузка всех данных
   const loadAllData = useCallback(async () => {
     if (!user) {
       setGoals([])
       setGoalsWithCategories([])
       setEvents([])
+      setGeneralEvents([])
       setCategories([])
       setLoading(false)
       return
@@ -235,7 +333,6 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     setError(null)
 
     try {
-      // Параллельная загрузка целей и категорий
       const [categoriesData, goalsData] = await Promise.all([
         goalsApi.getCategories(),
         goalsApi.getGoals(user.id)
@@ -260,23 +357,28 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
         updated_at: goal.updated_at
       })))
 
-      // Загружаем события для всех целей
-      if (goalsData.length > 0) {
-        const dateRange = getGoalsDateRange(goalsData)
+      // Параллельная загрузка всех событий
+      const [eventsData, generalEventsData] = await Promise.all([
+        goalsData.length > 0 ? (() => {
+          const dateRange = getGoalsDateRange(goalsData)
+          return dateRange 
+            ? eventsApi.getEventsInRange(user.id, dateRange.startDate, dateRange.endDate)
+            : Promise.resolve([])
+        })() : Promise.resolve([]),
         
-        if (dateRange) {
-          const eventsData = await eventsApi.getEventsInRange(
-            user.id,
-            dateRange.startDate,
-            dateRange.endDate
-          )
-          setEvents(eventsData)
-        } else {
-          setEvents([])
-        }
-      } else {
-        setEvents([])
-      }
+        (() => {
+          const today = new Date()
+          const startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1)
+            .toISOString().split('T')[0]
+          const endDate = new Date(today.getFullYear(), today.getMonth() + 12, 0)
+            .toISOString().split('T')[0]
+          return generalEventsApi.getEventsInRange(user.id, startDate, endDate)
+        })()
+      ])
+
+      setEvents(eventsData)
+      setGeneralEvents(generalEventsData)
+      
     } catch (err: any) {
       console.error('Ошибка при загрузке данных:', err)
       setError(err.message || 'Ошибка при загрузке данных')
@@ -288,7 +390,6 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
   const refreshAll = useCallback(async () => {
     await loadAllData()
   }, [loadAllData])
-
 
   // Загрузка данных при изменении пользователя
   useEffect(() => {
@@ -308,7 +409,7 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
         is_expanded: false,
       })
 
-      await loadAllData() // Перезагружаем данные
+      await loadAllData()
       return newGoal
     } catch (err: any) {
       console.error('Ошибка при добавлении цели:', err)
@@ -321,7 +422,6 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     try {
       const updatedGoal = await goalsApi.updateGoal(id, updates)
       
-      // Обновляем локальное состояние
       setGoals(prev => prev.map(goal => 
         goal.id === id ? updatedGoal : goal
       ))
@@ -341,7 +441,6 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     try {
       await goalsApi.deleteGoal(id)
       
-      // Обновляем локальное состояние
       setGoals(prev => prev.filter(goal => goal.id !== id))
       setGoalsWithCategories(prev => prev.filter(goal => goal.id !== id))
       setEvents(prev => prev.filter(event => event.goal_id !== id))
@@ -359,7 +458,7 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     await updateGoal(id, { completed: !goal.completed })
   }, [goals, updateGoal])
 
-  // Добавление события
+  // Добавление целевого события
   const addEvent = useCallback(async (eventData: Omit<CalendarEventInsert, 'user_id'>): Promise<CalendarEvent> => {
     if (!user) throw new Error('Пользователь не авторизован')
 
@@ -369,7 +468,6 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
         user_id: user.id,
       })
 
-      // Добавляем в локальное состояние
       setEvents(prev => [...prev, newEvent])
       return newEvent
     } catch (err: any) {
@@ -378,12 +476,11 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     }
   }, [user])
 
-  // Обновление события
+  // Обновление целевого события
   const updateEvent = useCallback(async (id: string, updates: CalendarEventUpdate): Promise<CalendarEvent> => {
     try {
       const updatedEvent = await eventsApi.updateEvent(id, updates)
       
-      // Обновляем локальное состояние
       setEvents(prev => prev.map(event => 
         event.id === id ? updatedEvent : event
       ))
@@ -395,12 +492,11 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     }
   }, [])
 
-  // Удаление события
+  // Удаление целевого события
   const deleteEvent = useCallback(async (id: string): Promise<void> => {
     try {
       await eventsApi.deleteEvent(id)
       
-      // Обновляем локальное состояние
       setEvents(prev => prev.filter(event => event.id !== id))
     } catch (err: any) {
       console.error('Ошибка при удалении события:', err)
@@ -408,13 +504,67 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     }
   }, [])
 
-  // Переключение статуса выполнения события
+  // Переключение статуса выполнения целевого события
   const toggleEventComplete = useCallback(async (id: string): Promise<void> => {
     const event = events.find(e => e.id === id)
     if (!event) return
 
     await updateEvent(id, { completed: !event.completed })
   }, [events, updateEvent])
+
+  // Добавление общего события
+  const addGeneralEvent = useCallback(async (eventData: Omit<GeneralCalendarEventInsert, 'user_id'>): Promise<GeneralCalendarEvent> => {
+    if (!user) throw new Error('Пользователь не авторизован')
+
+    try {
+      const newEvent = await generalEventsApi.createEvent({
+        ...eventData,
+        user_id: user.id,
+      })
+
+      setGeneralEvents(prev => [...prev, newEvent])
+      return newEvent
+    } catch (err: any) {
+      console.error('Ошибка при добавлении общего события:', err)
+      throw err
+    }
+  }, [user])
+
+  // Обновление общего события
+  const updateGeneralEvent = useCallback(async (id: string, updates: GeneralCalendarEventUpdate): Promise<GeneralCalendarEvent> => {
+    try {
+      const updatedEvent = await generalEventsApi.updateEvent(id, updates)
+      
+      setGeneralEvents(prev => prev.map(event => 
+        event.id === id ? updatedEvent : event
+      ))
+
+      return updatedEvent
+    } catch (err: any) {
+      console.error('Ошибка при обновлении общего события:', err)
+      throw err
+    }
+  }, [])
+
+  // Удаление общего события
+  const deleteGeneralEvent = useCallback(async (id: string): Promise<void> => {
+    try {
+      await generalEventsApi.deleteEvent(id)
+      
+      setGeneralEvents(prev => prev.filter(event => event.id !== id))
+    } catch (err: any) {
+      console.error('Ошибка при удалении общего события:', err)
+      throw err
+    }
+  }, [])
+
+  // Переключение статуса выполнения общего события
+  const toggleGeneralEventComplete = useCallback(async (id: string): Promise<void> => {
+    const event = generalEvents.find(e => e.id === id)
+    if (!event) return
+
+    await updateGeneralEvent(id, { completed: !event.completed })
+  }, [generalEvents, updateGeneralEvent])
 
   // Переключение дня выполнения
   const toggleCompletionDay = useCallback(async (goalId: string, date: string, title: string): Promise<'created' | 'deleted'> => {
@@ -423,14 +573,11 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
     try {
       const result = await eventsApi.toggleCompletionDay(goalId, date, user.id, title)
       
-      // Добавляем/удаляем из локального состояния
       if (result === 'deleted') {
-        // Находим и удаляем событие-день выполнения
         setEvents(prev => prev.filter(event => 
           !(event.goal_id === goalId && event.date === date && event.event_type === 'completion')
         ))
       } else {
-        // Создаем новое событие для локального состояния
         const newEvent: CalendarEvent = {
           id: `temp-${Date.now()}`,
           goal_id: goalId,
@@ -451,7 +598,6 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
         setEvents(prev => [...prev, newEvent])
       }
       
-      // Обновляем прогресс цели
       await refreshGoals()
       return result
     } catch (err: any) {
@@ -462,42 +608,47 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
 
   // Значение контекста
   const value: GoalContextType = {
-    // Данные
     goals,
     events,
+    generalEvents,
     categories,
     goalsWithCategories,
     
-    // Состояние
     loading,
     error,
     
-    // Операции с целями
     addGoal,
     updateGoal,
     deleteGoal,
     toggleGoalComplete,
     
-    // Операции с событиями
     addEvent,
     updateEvent,
     deleteEvent,
     toggleEventComplete,
     toggleCompletionDay,
     
-    // Вспомогательные методы
+    addGeneralEvent,
+    updateGeneralEvent,
+    deleteGeneralEvent,
+    toggleGeneralEventComplete,
+    
     getEventsByGoal,
     getEventsByDate,
     getRegularEventsByGoal,
     getCalendarEvents,
+    getGeneralEvents,
+    getAllEvents,
     getCompletionDays,
     calculateGoalProgress,
     findCompletionDay,
     isCompletionDayEvent,
+    getGoalTitleById,
+    formatEventDate,
     
-    // Обновление данных
     refreshGoals,
     refreshEvents,
+    refreshGeneralEvents,
     refreshAll,
   }
 
@@ -508,7 +659,6 @@ export const GoalsProvider: React.FC<GoalsProviderProps> = ({ children }) => {
   )
 }
 
-// Хук для использования контекста
 export const useGoals = () => {
   const context = useContext(GoalsContext)
   if (context === undefined) {

@@ -4,16 +4,31 @@ import BottomNav from '../../components/Navigation/BottomNav';
 import { useTranslation } from '../../i18n/hooks';
 import { useGoals } from '../../contexts/GoalsContext';
 import { cn } from '../../utils/cn';
+import GoalEventModal from '../Goals/components/GoalEventModal';
 
 const Calendar: React.FC = () => {
-  // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
-  const { getCalendarEvents, deleteEvent, toggleEventComplete } = useGoals();
+  const { 
+    getCalendarEvents, 
+    getGeneralEvents,
+    getAllEvents,
+    deleteEvent, 
+    deleteGeneralEvent,
+    toggleEventComplete, 
+    toggleGeneralEventComplete,
+    addGeneralEvent,
+    formatEventDate
+  } = useGoals();
+  
   const { t, calendar: calendarT, language } = useTranslation();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [showAddEventModal, setShowAddEventModal] = useState(false);
+  const [newEventDate, setNewEventDate] = useState<string>('');
 
-  // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
-  // Получаем только календарные события (без completion)
+  // Получаем все типы событий
   const calendarEvents = getCalendarEvents();
+  const generalEvents = getGeneralEvents();
+  const allEvents = getAllEvents();
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -22,6 +37,60 @@ const Calendar: React.FC = () => {
   const getFirstDayOfMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   };
+
+  // Обработчик клика по дате в календаре
+  const handleDateClick = (dateStr: string) => {
+    if (selectedDate === dateStr) {
+      setSelectedDate(null);
+    } else {
+      setSelectedDate(dateStr);
+    }
+  };
+
+  // Обработчик открытия модалки добавления события
+  const handleAddEventClick = () => {
+    const dateToUse = selectedDate || new Date().toISOString().split('T')[0];
+    setNewEventDate(dateToUse);
+    setShowAddEventModal(true);
+  };
+
+  // Обработчик сохранения общего события
+  const handleSaveGeneralEvent = async (eventData: {
+    title: string;
+    description: string;
+    date: string;
+    color: string;
+    type: 'work' | 'personal' | 'health' | 'learning' | 'finance';
+    completed: boolean;
+    amount?: number;
+    currency?: string;
+  }) => {
+    try {
+      await addGeneralEvent({
+        title: eventData.title,
+        description: eventData.description,
+        date: eventData.date,
+        color: eventData.color,
+        event_type: eventData.type === 'finance' ? 'finance' : 'general',
+        completed: eventData.completed,
+        amount: eventData.amount,
+        currency: eventData.currency || 'RUB',
+      });
+
+      setShowAddEventModal(false);
+    } catch (error) {
+      console.error('Ошибка при добавлении общего события:', error);
+      alert('Не удалось добавить событие. Попробуйте еще раз.');
+    }
+  };
+
+  // Получаем события для выбранной даты (если есть) или все события
+  const getFilteredEvents = useMemo(() => {
+    if (selectedDate) {
+      return allEvents.filter(event => event.date === selectedDate);
+    }
+    return allEvents;
+  }, [allEvents, selectedDate]);
 
   const MiniCalendar: React.FC = () => {
     const daysInMonth = getDaysInMonth(currentMonth);
@@ -39,15 +108,16 @@ const Calendar: React.FC = () => {
     
     for (let i = 1; i <= daysInMonth; i++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-      // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
-      const dayEvents = calendarEvents.filter(event => event.date === dateStr);
+      const dayEvents = allEvents.filter(event => event.date === dateStr);
       const isToday = dateStr === todayStr;
+      const isSelected = selectedDate === dateStr;
       
       days.push({
         day: i,
         dateStr,
         hasEvents: dayEvents.length > 0,
-        isToday
+        isToday,
+        isSelected
       });
     }
 
@@ -71,10 +141,26 @@ const Calendar: React.FC = () => {
                 year: 'numeric' 
               })}
             </h3>
+            {/* Показываем выбранную дату, если она есть */}
+            {selectedDate && (
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                {formatEventDate(selectedDate)}
+                <button 
+                  onClick={() => setSelectedDate(null)}
+                  className="ml-2 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                  title={t('calendar.clearSelection')}
+                >
+                  ×
+                </button>
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+              onClick={() => {
+                setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+                setSelectedDate(null);
+              }}
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface dark:hover:bg-dark-surface transition-colors"
               aria-label={t('calendar.prevMonth')}
             >
@@ -83,13 +169,19 @@ const Calendar: React.FC = () => {
               </svg>
             </button>
             <button
-              onClick={() => setCurrentMonth(new Date())}
+              onClick={() => {
+                setCurrentMonth(new Date());
+                setSelectedDate(null);
+              }}
               className="px-3 py-1.5 text-sm bg-surface dark:bg-dark-surface text-text-primary dark:text-dark-text-primary rounded-lg hover:bg-border dark:hover:bg-dark-border transition-colors"
             >
               {t('calendar.today')}
             </button>
             <button
-              onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+              onClick={() => {
+                setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+                setSelectedDate(null);
+              }}
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface dark:hover:bg-dark-surface transition-colors"
               aria-label={t('calendar.nextMonth')}
             >
@@ -116,47 +208,59 @@ const Calendar: React.FC = () => {
               return <div key={`empty-${index}`} className="h-10" />;
             }
 
-            // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
-            const dayEvents = calendarEvents.filter(e => e.date === day.dateStr);
+            const dayEvents = allEvents.filter(e => e.date === day.dateStr);
 
             return (
-              <div
+              <button
                 key={day.dateStr}
+                onClick={() => handleDateClick(day.dateStr)}
                 className={cn(
-                  "h-10 flex items-center justify-center rounded-lg relative",
-                  "transition-colors duration-150",
-                  day.isToday 
-                    ? "bg-primary/10 dark:bg-dark-primary/20 border border-primary/20 dark:border-dark-primary/30" 
+                  "h-10 w-full flex items-center justify-center rounded-lg relative",
+                  "transition-all duration-200 active:scale-95",
+                  day.isSelected
+                    ? "bg-primary/10 dark:bg-dark-primary/20 border border-primary/20 dark:border-dark-primary/30"
                     : "hover:bg-surface/50 dark:hover:bg-dark-surface/50"
                 )}
               >
                 <div className={cn(
                   "text-sm font-medium",
-                  day.isToday 
-                    ? "text-primary dark:text-dark-primary" 
-                    : "text-text-primary dark:text-dark-text-primary",
-                  day.hasEvents && "font-semibold"
+                  day.isToday && !day.isSelected 
+                    ? "text-primary dark:text-dark-primary font-semibold"
+                    : day.isSelected
+                    ? "text-primary dark:text-dark-primary"
+                    : "text-text-primary dark:text-dark-text-primary"
                 )}>
                   {day.day}
                 </div>
 
-                {day.hasEvents && (
+                {day.hasEvents && !day.isSelected && (
                   <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-0.5">
                     {dayEvents
                       .slice(0, 3)
-                      .map((event, idx) => (
-                        <div
-                          key={idx}
-                          className="w-1 h-1 rounded-full"
-                          style={{ 
-                            backgroundColor: COLOR_MAP[event.color] || '#3b82f6' 
-                          }}
-                        />
-                      ))
+                      .map((event, idx) => {
+                        let dotColor = COLOR_MAP[event.color] || '#3b82f6';
+                        const isGoalEvent = 'goal_id' in event;
+                        
+                        if (!isGoalEvent) {
+                          dotColor = event.color === 'bg-gray-500' ? '#6b7280' : COLOR_MAP[event.color] || '#3b82f6';
+                        }
+                        
+                        return (
+                          <div
+                            key={idx}
+                            className="w-1 h-1 rounded-full"
+                            style={{ backgroundColor: dotColor }}
+                          />
+                        );
+                      })
                     }
                   </div>
                 )}
-              </div>
+                
+                {day.isSelected && (
+                  <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary dark:bg-dark-primary" />
+                )}
+              </button>
             );
           })}
         </div>
@@ -164,17 +268,35 @@ const Calendar: React.FC = () => {
     );
   };
 
+  // Сортировка событий: новые даты (будущие) → старые (прошлые)
   const sortedEvents = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
-    // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
-    return [...calendarEvents].sort((a, b) => {
-      const isTodayA = a.date === today;
-      const isTodayB = b.date === today;
-      if (isTodayA && !isTodayB) return -1;
-      if (!isTodayA && isTodayB) return 1;
-      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    
+    return [...getFilteredEvents].sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      const todayDate = new Date(today);
+      
+      if (a.date === today && b.date !== today) return -1;
+      if (a.date !== today && b.date === today) return 1;
+      
+      if (a.date === today && b.date === today) {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+      
+      const isFutureA = dateA >= todayDate;
+      const isFutureB = dateB >= todayDate;
+      
+      if (isFutureA && !isFutureB) return -1;
+      if (!isFutureA && isFutureB) return 1;
+      
+      if (isFutureA && isFutureB) {
+        return dateA.getTime() - dateB.getTime();
+      }
+      
+      return dateB.getTime() - dateA.getTime();
     });
-  }, [calendarEvents]); // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
+  }, [getFilteredEvents]);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -187,37 +309,81 @@ const Calendar: React.FC = () => {
     });
   };
 
-  // Фиксим баг с чекбоксом - предотвращаем всплытие события
-  const handleToggleComplete = (eventId: string, e: React.MouseEvent) => {
+  // Обработчик переключения статуса выполнения события
+  const handleToggleComplete = (event: any, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleEventComplete(eventId);
+    
+    if ('goal_id' in event) {
+      toggleEventComplete(event.id);
+    } else {
+      toggleGeneralEventComplete(event.id);
+    }
   };
+
+  // Обработчик удаления события
+  const handleDeleteEvent = (event: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if ('goal_id' in event) {
+      deleteEvent(event.id);
+    } else {
+      deleteGeneralEvent(event.id);
+    }
+  };
+
+  // Текст для заголовка раздела событий
+  const eventsSectionTitle = selectedDate
+    ? `${t('calendar.eventsForDate')} ${formatEventDate(selectedDate)} (${getFilteredEvents.length})`
+    : t('calendar.eventsLabel', { count: getFilteredEvents.length });
 
   return (
     <div className="min-h-screen bg-background dark:bg-dark-background pb-20">
       <Header 
         title={calendarT('title')}
-        // ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★
-        subtitle={t('calendar.eventsCount', { count: calendarEvents.length })}
+        subtitle={selectedDate 
+          ? t('calendar.viewingDateEvents')
+          : t('calendar.viewingAllEvents')}
       />
 
       <main className="p-3">
         <MiniCalendar />
 
-        <div className="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border">
-          <div className="px-3 py-3 border-b border-border dark:border-dark-border">
-            <span className="text-sm font-medium text-text-primary dark:text-dark-text-primary">
-              {/* ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★ */}
-              {t('calendar.eventsLabel', { count: calendarEvents.length })}
-            </span>
+        <div className="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border flex flex-col h-[calc(100vh-250px)] min-h-[300px]">
+          <div className="px-3 py-3 border-b border-border dark:border-dark-border flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-text-primary dark:text-dark-text-primary">
+                {eventsSectionTitle}
+              </span>
+              <div className="flex items-center gap-2">
+                {selectedDate && (
+                  <button
+                    onClick={() => setSelectedDate(null)}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                  >
+                    {t('calendar.showAll')}
+                  </button>
+                )}
+                <button
+                  onClick={handleAddEventClick}
+                  className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors border border-blue-200 dark:border-blue-700/30"
+                  title={t('calendar.addEvent')}
+                  aria-label={t('calendar.addEvent')}
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="max-h-[60vh] overflow-y-auto">
-            {/* ★★★★ ИЗМЕНЕНИЕ ЗДЕСЬ ★★★★ */}
+          <div className="flex-1 overflow-y-auto">
             {sortedEvents.length > 0 ? (
               <div className="divide-y divide-border/50 dark:divide-dark-border/50">
                 {sortedEvents.map(event => {
+                  const isGoalEvent = 'goal_id' in event;
                   const isFinanceEvent = event.amount !== undefined && event.amount !== null;
                   
                   let displayText = event.title;
@@ -244,19 +410,26 @@ const Calendar: React.FC = () => {
                     isFinanceEvent && event.amount !== undefined && event.amount !== null && event.amount < 0 && "!text-red-600 dark:!text-red-400"
                   );
 
+                  let dotColor = COLOR_MAP[event.color] || '#3b82f6';
+                  if (isGoalEvent) {
+                    dotColor = COLOR_MAP[event.color] || '#3b82f6';
+                  } else {
+                    dotColor = event.color === 'bg-gray-500' ? '#6b7280' : COLOR_MAP[event.color] || '#3b82f6';
+                  }
+
                   return (
                     <div 
                       key={event.id} 
-                      className="px-3 py-2.5 hover:bg-surface/50 dark:hover:bg-dark-surface/50 transition-colors"
+                      className="px-3 py-2 hover:bg-surface/50 dark:hover:bg-dark-surface/50 transition-colors"
                     >
-                      <div className="flex items-center gap-2">
-                        {/* ИСПРАВЛЕННЫЙ ЧЕКБОКС */}
+                      <div className="flex items-start gap-2">
                         <button
-                          onClick={(e) => handleToggleComplete(event.id, e)}
+                          onClick={(e) => handleToggleComplete(event, e)}
                           onMouseDown={(e) => e.preventDefault()}
                           className={cn(
-                            "w-4 h-4 border rounded flex-shrink-0 flex items-center justify-center",
+                            "w-4 h-4 border rounded flex-shrink-0 mt-0.5",
                             "transition-colors duration-200 active:scale-95",
+                            "flex items-center justify-center",
                             "outline-none focus:outline-none",
                             event.completed 
                               ? "bg-primary dark:bg-dark-primary border-primary dark:border-dark-primary" 
@@ -279,37 +452,44 @@ const Calendar: React.FC = () => {
                           )}
                         </button>
 
-                        {/* Цветная точка */}
                         <div 
-                          className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: COLOR_MAP[event.color] || '#3b82f6' }}
+                          className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
+                          style={{ backgroundColor: dotColor }}
                         />
 
-                        {/* Дата */}
-                        <span className="text-xs text-text-secondary dark:text-dark-text-secondary min-w-[60px] flex-shrink-0">
+                        <span className="text-xs text-text-secondary dark:text-dark-text-secondary min-w-[60px] flex-shrink-0 pt-0.5">
                           {formatDate(event.date)}
                         </span>
 
-                        {/* Название - ОБНОВЛЕНО */}
-                        <span className={cn("text-sm flex-1 min-w-0", textColorClass)} style={{
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          wordBreak: 'break-word'
-                        }}>
-                          {displayText}
-                        </span>
+                        <div className="flex-1 min-w-0">
+                          <span className={cn("text-sm block", textColorClass)} style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            wordBreak: 'break-word',
+                            lineHeight: '1.3'
+                          }}>
+                            {displayText}
+                          </span>
+                          
+                          {isGoalEvent && event.goalTitle && (
+                            <span className="text-xs text-text-tertiary dark:text-dark-text-tertiary block mt-0.5 leading-tight truncate">
+                              {event.goalTitle}
+                            </span>
+                          )}
+                          
+                          {!isGoalEvent && (
+                            <span className="text-xs text-blue-600 dark:text-blue-400 block mt-0.5 leading-tight">
+                              {t('calendar.generalEvent')}
+                            </span>
+                          )}
+                        </div>
 
-                        {/* КРЕСТИК УДАЛЕНИЯ */}
                         <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            deleteEvent(event.id);
-                          }}
+                          onClick={(e) => handleDeleteEvent(event, e)}
                           onMouseDown={(e) => e.preventDefault()}
-                          className="p-1 text-text-tertiary dark:text-dark-text-tertiary hover:text-error dark:hover:text-dark-error active:scale-95 transition-colors flex-shrink-0"
+                          className="p-1 text-text-tertiary dark:text-dark-text-tertiary hover:text-error dark:hover:text-dark-error active:scale-95 transition-colors flex-shrink-0 mt-0.5"
                           title={t('common.delete')}
                           aria-label={t('common.delete')}
                         >
@@ -329,10 +509,18 @@ const Calendar: React.FC = () => {
                 })}
               </div>
             ) : (
-              <div className="px-3 py-8 text-center">
+              <div className="px-3 py-8 text-center h-full flex flex-col items-center justify-center">
                 <p className="text-text-secondary dark:text-dark-text-secondary text-sm">
-                  {t('calendar.noEvents')}
+                  {selectedDate 
+                    ? t('calendar.noEventsForDate')
+                    : t('calendar.noEvents')}
                 </p>
+                <button
+                  onClick={handleAddEventClick}
+                  className="mt-3 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors text-sm border border-blue-200 dark:border-blue-700/30"
+                >
+                  {t('calendar.addEvent')}
+                </button>
               </div>
             )}
           </div>
@@ -340,6 +528,15 @@ const Calendar: React.FC = () => {
       </main>
 
       <BottomNav />
+
+      <GoalEventModal
+        isOpen={showAddEventModal}
+        onClose={() => setShowAddEventModal(false)}
+        onSave={handleSaveGeneralEvent}
+        selectedDate={newEventDate}
+        goalTitle={t('calendar.generalEvent') || 'Общее событие'}
+        goalCategory=""
+      />
     </div>
   );
 };
@@ -351,6 +548,23 @@ const COLOR_MAP: { [key: string]: string } = {
   'bg-red-500': '#ef4444',
   'bg-purple-500': '#8b5cf6',
   'bg-pink-500': '#ec4899',
+  'bg-gray-500': '#6b7280',
+  'bg-blue-100': '#dbeafe',
+  'bg-indigo-500': '#6366f1',
+  'bg-teal-500': '#14b8a6',
+  'bg-orange-500': '#f97316',
+  'bg-rose-500': '#f43f5e',
+  'bg-cyan-500': '#06b6d4',
+  'bg-emerald-500': '#10b981',
+  'bg-violet-500': '#8b5cf6',
+  'bg-fuchsia-500': '#d946ef',
+  'bg-sky-500': '#0ea5e9',
+  'bg-lime-500': '#84cc16',
+  'bg-amber-500': '#f59e0b',
+  'bg-stone-500': '#78716c',
+  'bg-zinc-500': '#71717a',
+  'bg-neutral-500': '#737373',
+  'bg-slate-500': '#64748b',
 };
 
 export default Calendar;

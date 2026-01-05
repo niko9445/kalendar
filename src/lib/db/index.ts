@@ -1,11 +1,32 @@
 // src/lib/db/index.ts
 import { supabase } from '../supabase';
+import { goalsApi, GoalWithCategory } from './goals';
+import { eventsApi } from './events';
+import { profilesApi } from './profiles';
+import { generalEventsApi } from './general-events'; // Добавляем импорт
 
+// Экспортируем все API
+export { goalsApi, eventsApi, profilesApi, generalEventsApi };
+export type { GoalWithCategory };
+
+// Функция для удаления всех данных пользователя
 export const deleteAllUserData = async (userId: string): Promise<void> => {
   try {
     console.log(`Удаление всех данных для пользователя: ${userId}`);
     
-    // 1. Удаляем события календаря
+    // 1. Удаляем общие события (НОВАЯ ЧАСТЬ)
+    console.log('Удаляем общие события...');
+    const { error: generalEventsError } = await supabase
+      .from('general_calendar_events')
+      .delete()
+      .eq('user_id', userId);
+
+    if (generalEventsError) {
+      console.error('Ошибка при удалении общих событий:', generalEventsError);
+      throw new Error(`Ошибка удаления общих событий: ${generalEventsError.message}`);
+    }
+
+    // 2. Удаляем события календаря
     console.log('Удаляем события календаря...');
     const { error: eventsError } = await supabase
       .from('calendar_events')
@@ -17,7 +38,7 @@ export const deleteAllUserData = async (userId: string): Promise<void> => {
       throw new Error(`Ошибка удаления событий: ${eventsError.message}`);
     }
 
-    // 2. Удаляем цели
+    // 3. Удаляем цели
     console.log('Удаляем цели...');
     const { error: goalsError } = await supabase
       .from('goals')
@@ -29,7 +50,7 @@ export const deleteAllUserData = async (userId: string): Promise<void> => {
       throw new Error(`Ошибка удаления целей: ${goalsError.message}`);
     }
 
-    // 3. Сбрасываем настройки к дефолтным (не удаляем, а обновляем)
+    // 4. Сбрасываем настройки к дефолтным (не удаляем, а обновляем)
     console.log('Сбрасываем настройки...');
     const { error: settingsError } = await supabase
       .from('user_settings')
@@ -48,7 +69,7 @@ export const deleteAllUserData = async (userId: string): Promise<void> => {
       // Игнорируем ошибку, так как настроек может не быть
     }
 
-    // 4. Очищаем дополнительные поля профиля (основной профиль сохраняем)
+    // 5. Очищаем дополнительные поля профиля (основной профиль сохраняем)
     console.log('Очищаем дополнительные поля профиля...');
     const { error: profileError } = await supabase
       .from('profiles')
