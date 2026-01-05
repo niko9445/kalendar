@@ -34,10 +34,12 @@ interface GoalItemCompactProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   onToggleComplete: () => void;
+  onEditGoal: () => void; // Новая функция для редактирования цели
   onDeleteGoal: () => void;
   onEventSave: (event: any) => void;
   onEventDelete: (eventId: string) => void;
   onEventToggleComplete: (eventId: string) => void;
+  onEditEvent?: (eventId: string) => void; // Новая функция для редактирования события
 }
 
 const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
@@ -46,10 +48,12 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
   isExpanded,
   onToggleExpand,
   onToggleComplete,
+  onEditGoal,
   onDeleteGoal,
   onEventSave,
   onEventDelete,
   onEventToggleComplete,
+  onEditEvent,
 }) => {
   const { t } = useTranslation();
 
@@ -129,7 +133,6 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
                   "text-sm font-medium break-words min-w-0",
                   goal.completed ? "text-text-secondary dark:text-dark-text-secondary line-through" : "text-text-primary dark:text-dark-text-primary"
                 )}>
-                  {/* Заменяем truncate на break-words */}
                   <span className="break-words line-clamp-2" style={{ 
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
@@ -139,12 +142,36 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
                     {goal.title}
                   </span>
                 </h3>
-                <span className={cn(
-                  "px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0",
-                  getPriorityColor(goal.priority)
-                )}>
-                  {getPriorityLabel(goal.priority)}
-                </span>
+                
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {/* Кнопка редактирования цели - круглая иконка */}
+                  <button
+  onClick={(e) => {
+    e.stopPropagation();
+    onEditGoal();
+  }}
+  className="w-7 h-7 rounded-full bg-gray-50/70 dark:bg-gray-800/50 hover:bg-blue-50/80 dark:hover:bg-blue-900/25 
+           border border-gray-200/50 dark:border-gray-700/50 hover:border-blue-200 dark:hover:border-blue-800/40
+           flex items-center justify-center transition-all duration-200 group active:scale-95 shadow-sm"
+  aria-label={t('common.edit')}
+  title={t('common.edit')}
+>
+  <svg className="w-3.5 h-3.5 text-gray-500/80 dark:text-gray-500/80 
+                group-hover:text-blue-500/90 dark:group-hover:text-blue-400/90
+                transition-colors duration-200" 
+       fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" 
+          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+  </svg>
+</button>
+                  
+                  <span className={cn(
+                    "px-2 py-0.5 rounded-full text-xs font-medium",
+                    getPriorityColor(goal.priority)
+                  )}>
+                    {getPriorityLabel(goal.priority)}
+                  </span>
+                </div>
               </div>
               
               {/* Описание (только если есть) */}
@@ -243,6 +270,7 @@ const GoalItemCompact: React.FC<GoalItemCompactProps> = ({
             onEventSave={onEventSave}
             onEventDelete={onEventDelete}
             onEventToggleComplete={onEventToggleComplete}
+            onEditEvent={onEditEvent}
             onDeleteGoal={onDeleteGoal}
           />
         </div>

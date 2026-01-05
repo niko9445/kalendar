@@ -30,6 +30,7 @@ interface GoalCalendarProps {
   onEventSave: (event: any) => void;
   onEventDelete: (eventId: string) => void;
   onEventToggleComplete: (eventId: string) => void;
+  onEditEvent?: (eventId: string) => void; // Новая функция для редактирования события
   onDeleteGoal: () => void;
 }
 
@@ -58,6 +59,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
   onEventSave,
   onEventDelete,
   onEventToggleComplete,
+  onEditEvent,
   onDeleteGoal,
 }) => {
   const { t, language } = useTranslation();
@@ -66,6 +68,8 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [editingEventData, setEditingEventData] = useState<any>(null);
   
   const clickCountRef = useRef<number>(0);
   const lastClickDateRef = useRef<string>('');
@@ -193,19 +197,45 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
       }
       else if (clicks >= 3) {
         setSelectedDate(dateStr);
+        setEditingEventId(null);
+        setEditingEventData(null);
         setShowEventModal(true);
       }
       else if (clicks === 1) {
         setSelectedDate(dateStr);
+        setEditingEventId(null);
+        setEditingEventData(null);
       }
     }, 300);
   }, [goal.id, t, toggleCompletionDay, isDateWithinGoalRange, language, goal.startDate, goal.deadline]);
+
+  // Функция для редактирования события inline
+  const handleEditEvent = useCallback((event: any) => {
+    setEditingEventId(event.id);
+    setEditingEventData(event);
+    setShowEventModal(true);
+  }, []);
+
+  // Функция для обновления события
+  const handleUpdateEvent = useCallback((eventData: any) => {
+    if (editingEventId) {
+      onEventSave({
+        ...eventData,
+        id: editingEventId, // Добавляем ID для обновления
+        goalId: goal.id,
+      });
+      setEditingEventId(null);
+      setEditingEventData(null);
+    }
+  }, [editingEventId, goal.id, onEventSave]);
 
   const handlePrevMonth = useCallback(() => {
     if (!canGoToPrevMonth) return;
     
     setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
     setSelectedDate(null);
+    setEditingEventId(null);
+    setEditingEventData(null);
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
   }, [canGoToPrevMonth]);
 
@@ -214,6 +244,8 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
     
     setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
     setSelectedDate(null);
+    setEditingEventId(null);
+    setEditingEventData(null);
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
   }, [canGoToNextMonth]);
 
@@ -232,6 +264,8 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
     }
     
     setSelectedDate(null);
+    setEditingEventId(null);
+    setEditingEventData(null);
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
   }, [getMinAllowedDate, getMaxAllowedDate]);
 
@@ -437,7 +471,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
                         )}
                       </button>
                       
-                      {/* Отображение текста - ОБНОВЛЕНО */}
+                      {/* Отображение текста */}
                       <div className={cn("text-xs min-w-0", textColorClass)} style={{
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
@@ -449,16 +483,33 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
                       </div>
                     </div>
                     
-                    {/* Кнопка удаления */}
-                    <button
-                      onClick={() => onEventDelete(event.id)}
-                      className="p-1 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors ml-1 flex-shrink-0"
-                      aria-label={t('common.delete')}
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {/* Кнопка редактирования события - появляется только при клике на дату */}
+                      {selectedDate && (
+                        <button
+                          onClick={() => handleEditEvent(event)}
+                          className="p-1 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 
+                                  hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors group"
+                          aria-label={t('common.edit')}
+                          title={t('common.edit')}
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                      )}
+                      
+                      {/* Кнопка удаления */}
+                      <button
+                        onClick={() => onEventDelete(event.id)}
+                        className="p-1 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                        aria-label={t('common.delete')}
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -491,21 +542,17 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
         isOpen={showEventModal}
         onClose={() => {
           setShowEventModal(false);
+          setEditingEventId(null);
+          setEditingEventData(null);
           if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
           clickCountRef.current = 0;
         }}
-        onSave={(eventData) => {
-          onEventSave({
-            ...eventData,
-            goalId: goal.id,
-          });
-          setShowEventModal(false);
-          if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
-          clickCountRef.current = 0;
-        }}
+        onSave={onEventSave}
+        onUpdate={handleUpdateEvent}
         selectedDate={selectedDate}
         goalTitle={goal.title}
         goalCategory={goal.categoryKey}
+        editingEvent={editingEventData}
       />
     </div>
   );

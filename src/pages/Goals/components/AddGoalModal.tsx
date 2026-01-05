@@ -2,32 +2,46 @@ import React, { useState, useEffect } from 'react';
 import { cn } from '../../../utils/cn';
 import { useTranslation } from '../../../i18n/hooks';
 
+interface GoalFormData {
+  title: string;
+  description: string;
+  category: string;
+  startDate: string;
+  deadline: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
 interface AddGoalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (goal: {
+  onSave: (goal: GoalFormData) => void;
+  onUpdate?: (goal: GoalFormData & { id: string }) => void; // Новая функция для обновления
+  editingGoal?: { // Новый параметр для редактирования
+    id: string;
     title: string;
     description: string;
     category: string;
     startDate: string;
     deadline: string;
     priority: 'high' | 'medium' | 'low';
-  }) => void;
+  } | null;
 }
 
 const AddGoalModal: React.FC<AddGoalModalProps> = ({ 
   isOpen, 
   onClose, 
-  onSave 
+  onSave,
+  onUpdate,
+  editingGoal = null
 }) => {
   const { t } = useTranslation();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<GoalFormData>({
     title: '',
     description: '',
     category: '',
     startDate: '',
     deadline: '',
-    priority: 'medium' as 'high' | 'medium' | 'low',
+    priority: 'medium',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -49,6 +63,22 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
     { value: 'high', label: t('priorities.high') },
   ];
 
+  // Заполняем форму данными при редактировании
+  useEffect(() => {
+    if (editingGoal) {
+      setFormData({
+        title: editingGoal.title || '',
+        description: editingGoal.description || '',
+        category: editingGoal.category || '',
+        startDate: editingGoal.startDate || '',
+        deadline: editingGoal.deadline || '',
+        priority: editingGoal.priority || 'medium',
+      });
+    } else {
+      resetForm();
+    }
+  }, [editingGoal]);
+
   // Блокируем скролл фона при открытии модалки
   useEffect(() => {
     if (isOpen) {
@@ -69,7 +99,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
     };
   }, [isOpen]);
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: keyof GoalFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -112,14 +142,16 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
     e.preventDefault();
     
     if (validateForm()) {
-      onSave({
-        title: formData.title,
-        description: formData.description,
-        category: formData.category,
-        startDate: formData.startDate,
-        deadline: formData.deadline,
-        priority: formData.priority,
-      });
+      if (editingGoal && onUpdate) {
+        // Если редактируем существующую цель
+        onUpdate({
+          id: editingGoal.id,
+          ...formData
+        });
+      } else {
+        // Если создаем новую цель
+        onSave(formData);
+      }
       resetForm();
       onClose();
     }
@@ -150,52 +182,58 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
   maxDate.setFullYear(maxDate.getFullYear() + 10);
   const maxDateString = maxDate.toISOString().split('T')[0];
 
-  return (
-    <>
-      {/* Overlay */}
-      <div 
-        className="fixed inset-0 bg-black/40 dark:bg-black/60 z-[60]"
-        onClick={onClose}
-      />
-      
-      {/* Модальное окно */}
-      <div 
-        className="fixed inset-0 z-[70] flex items-start justify-center pt-16 px-4 pb-20"
-        style={{ 
-          pointerEvents: 'none'
-        }}
-      >
-        {/* Основной контейнер модалки */}
+  // Определяем заголовок модалки в зависимости от режима
+  const modalTitle = editingGoal ? t('addGoalModal.editTitle') || 'Редактировать цель' : t('addGoalModal.title');
+  const submitButtonText = editingGoal ? t('common.save') : t('addGoalModal.createButton');
+
+    return (
+      <>
+        {/* Overlay */}
         <div 
-          className="relative w-full max-w-md bg-white dark:bg-dark-surface rounded-xl shadow-xl 
-                   flex flex-col pointer-events-auto overflow-hidden"
-          style={{
-            maxHeight: 'calc(100vh - 100px)',
-            minHeight: '200px',
+          className="fixed inset-0 bg-black/40 dark:bg-black/60 z-[60]"
+          onClick={onClose}
+        />
+        
+        {/* Модальное окно */}
+        <div 
+          className="fixed inset-0 z-[70] flex items-start justify-center pt-16 px-4 pb-20"
+          style={{ 
+            pointerEvents: 'none'
           }}
-          onClick={(e) => e.stopPropagation()}
         >
-          {/* Заголовок */}
-          <div className="flex-shrink-0 bg-white dark:bg-dark-surface border-b border-border dark:border-dark-border px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-text-primary dark:text-dark-text-primary">
-                  {t('addGoalModal.title')}
-                </h2>
-                <p className="text-xs text-text-secondary dark:text-dark-text-secondary mt-0.5">
-                  {t('addGoalModal.subtitle')}
-                </p>
+          {/* Основной контейнер модалки */}
+          <div 
+            className="relative w-full max-w-md bg-white dark:bg-dark-surface rounded-xl shadow-xl 
+                    flex flex-col pointer-events-auto overflow-hidden"
+            style={{
+              maxHeight: 'calc(100vh - 100px)',
+              minHeight: '200px',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Заголовок */}
+            <div className="flex-shrink-0 bg-white dark:bg-dark-surface border-b border-border dark:border-dark-border px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-text-primary dark:text-dark-text-primary">
+                    {modalTitle}
+                  </h2>
+                  <p className="text-xs text-text-secondary dark:text-dark-text-secondary mt-0.5">
+                    {editingGoal 
+                      ? t('addGoalModal.editSubtitle') || 'Измените параметры цели'
+                      : t('addGoalModal.subtitle')}
+                  </p>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-1 text-text-secondary dark:text-dark-text-secondary hover:text-text-primary dark:hover:text-dark-text-primary hover:bg-surface dark:hover:bg-dark-surface rounded-md transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
-              <button
-                onClick={onClose}
-                className="p-1 text-text-secondary dark:text-dark-text-secondary hover:text-text-primary dark:hover:text-dark-text-primary hover:bg-surface dark:hover:bg-dark-surface rounded-md transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
             </div>
-          </div>
 
           {/* Прокручиваемая область формы */}
           <div 
@@ -389,7 +427,7 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({
                 className="flex-1 py-2.5 bg-blue-600 dark:bg-blue-600 text-white font-medium 
                          rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors text-sm"
               >
-                {t('addGoalModal.createButton')}
+                {submitButtonText}
               </button>
             </div>
           </div>

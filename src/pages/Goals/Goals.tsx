@@ -13,8 +13,10 @@ const Goals: React.FC = () => {
     goals,
     events,
     addGoal,
+    updateGoal,
     toggleGoalComplete,
     addEvent,
+    updateEvent,
     deleteEvent,
     toggleEventComplete,
     getEventsByGoal,
@@ -25,6 +27,7 @@ const Goals: React.FC = () => {
   const { t, goals: goalsT } = useTranslation();
   const [expandedGoalId, setExpandedGoalId] = useState<string | null>(null);
   const [showAddGoalModal, setShowAddGoalModal] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<any>(null);
 
   const toggleGoalExpansion = (goalId: string) => {
     setExpandedGoalId(expandedGoalId === goalId ? null : goalId);
@@ -45,29 +48,74 @@ const Goals: React.FC = () => {
       start_date: formData.startDate,
       deadline: formData.deadline,
       priority: formData.priority,
-      category_id: null, // TODO: Найти ID категории по имени
+      category_id: null,
     };
 
     addGoal(goalData);
   };
 
-  const handleEventSave = (eventData: any) => {
-    // Преобразуем данные из формы в формат базы данных
-    const formattedEvent = {
-      goal_id: eventData.goalId,
-      title: eventData.title,
-      description: eventData.description || '',
-      date: eventData.date,
-      color: eventData.color,
-      event_type: eventData.type || 'work',
-      completed: eventData.completed || false,
-      amount: eventData.amount || null,
-      currency: eventData.currency || 'RUB',
-      is_completion_day: eventData.type === 'completion',
-      completion_day_id: eventData.type === 'completion' ? `completion-${eventData.goalId}-${eventData.date}` : null,
-    };
+  const handleUpdateGoal = (goalData: any) => {
+    if (goalData.id) {
+      updateGoal(goalData.id, {
+        title: goalData.title,
+        description: goalData.description,
+        custom_category: goalData.category,
+        start_date: goalData.startDate,
+        deadline: goalData.deadline,
+        priority: goalData.priority,
+      });
+      setEditingGoal(null);
+    }
+  };
 
-    addEvent(formattedEvent);
+  const handleEditGoal = (goalId: string) => {
+    const goal = goals.find(g => g.id === goalId);
+    if (goal) {
+      setEditingGoal({
+        id: goal.id,
+        title: goal.title,
+        description: goal.description || '',
+        category: goal.custom_category || '',
+        startDate: goal.start_date,
+        deadline: goal.deadline,
+        priority: goal.priority,
+      });
+      setShowAddGoalModal(true);
+    }
+  };
+
+  const handleEventSave = (eventData: any) => {
+    if (eventData.id) {
+      // Если есть ID, значит это обновление существующего события
+      updateEvent(eventData.id, {
+        goal_id: eventData.goalId,
+        title: eventData.title,
+        description: eventData.description || '',
+        date: eventData.date,
+        color: eventData.color,
+        event_type: eventData.type || 'work',
+        completed: eventData.completed || false,
+        amount: eventData.amount || null,
+        currency: eventData.currency || 'RUB',
+      });
+    } else {
+      // Иначе создаем новое событие
+      const formattedEvent = {
+        goal_id: eventData.goalId,
+        title: eventData.title,
+        description: eventData.description || '',
+        date: eventData.date,
+        color: eventData.color,
+        event_type: eventData.type || 'work',
+        completed: eventData.completed || false,
+        amount: eventData.amount || null,
+        currency: eventData.currency || 'RUB',
+        is_completion_day: eventData.type === 'completion',
+        completion_day_id: eventData.type === 'completion' ? `completion-${eventData.goalId}-${eventData.date}` : null,
+      };
+
+      addEvent(formattedEvent);
+    }
   };
 
   const handleEventDelete = (eventId: string) => {
@@ -96,8 +144,8 @@ const Goals: React.FC = () => {
         id: goal.id,
         title: goal.title,
         description: goal.description || '',
-        category: categoryText, // Переведенная категория для отображения
-        categoryKey: categoryKey, // Ключ категории для логики
+        category: categoryText,
+        categoryKey: categoryKey,
         progress: goal.progress,
         startDate: goal.start_date,
         deadline: goal.deadline,
@@ -139,7 +187,10 @@ const Goals: React.FC = () => {
         subtitle={t('goals.activeGoals', { count: goals.length })}
         rightAction={
           <button
-            onClick={() => setShowAddGoalModal(true)}
+            onClick={() => {
+              setEditingGoal(null);
+              setShowAddGoalModal(true);
+            }}
             className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-surface dark:hover:bg-dark-surface active:bg-border dark:active:bg-dark-border transition-colors"
             style={{ WebkitTapHighlightColor: 'transparent' }}
           >
@@ -206,6 +257,7 @@ const Goals: React.FC = () => {
               isExpanded={expandedGoalId === goal.id}
               onToggleExpand={() => toggleGoalExpansion(goal.id)}
               onToggleComplete={() => handleGoalToggleComplete(goal.id)}
+              onEditGoal={() => handleEditGoal(goal.id)}
               onDeleteGoal={() => handleDeleteGoal(goal.id)}
               onEventSave={handleEventSave}
               onEventDelete={handleEventDelete}
@@ -229,7 +281,10 @@ const Goals: React.FC = () => {
               {goalsT('addFirstGoal')}
             </p>
             <button
-              onClick={() => setShowAddGoalModal(true)}
+              onClick={() => {
+                setEditingGoal(null);
+                setShowAddGoalModal(true);
+              }}
               className="px-6 py-3 bg-primary dark:bg-dark-primary text-white rounded-lg hover:bg-primary-dark dark:hover:bg-dark-primary-dark transition-colors"
             >
               {goalsT('createGoal')}
@@ -238,11 +293,16 @@ const Goals: React.FC = () => {
         )}
       </main>
 
-      {/* Модалка добавления цели */}
+      {/* Модалка добавления/редактирования цели */}
       <AddGoalModal
         isOpen={showAddGoalModal}
-        onClose={() => setShowAddGoalModal(false)}
+        onClose={() => {
+          setShowAddGoalModal(false);
+          setEditingGoal(null);
+        }}
         onSave={handleAddGoal}
+        onUpdate={handleUpdateGoal}
+        editingGoal={editingGoal}
       />
 
       <BottomNav />

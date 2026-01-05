@@ -16,18 +16,42 @@ interface GoalEventModalProps {
     amount?: number;
     currency?: string;
   }) => void;
+  onUpdate?: (eventData: {
+    id: string;
+    title: string;
+    description: string;
+    date: string;
+    color: string;
+    type: 'work' | 'personal' | 'health' | 'learning';
+    completed: boolean;
+    amount?: number;
+    currency?: string;
+  }) => void; // Новая функция для обновления
   selectedDate: string | null;
   goalTitle: string;
   goalCategory?: string;
+  editingEvent?: { // Новый параметр для редактирования
+    id: string;
+    title: string;
+    description: string;
+    date: string;
+    color: string;
+    type: 'work' | 'personal' | 'health' | 'learning' | 'finance';
+    completed: boolean;
+    amount?: number;
+    currency?: string;
+  } | null;
 }
 
 const GoalEventModal: React.FC<GoalEventModalProps> = ({
   isOpen,
   onClose,
   onSave,
+  onUpdate,
   selectedDate,
   goalTitle,
   goalCategory = '',
+  editingEvent = null,
 }) => {
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
@@ -51,6 +75,24 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
     { value: 'RUB', label: 'RUB' },
     { value: 'USD', label: 'USD' },
   ];
+
+  // Заполняем форму данными при редактировании
+  useEffect(() => {
+    if (editingEvent) {
+      setTitle(editingEvent.title || '');
+      setDescription(editingEvent.description || '');
+      setColor(editingEvent.color || 'bg-blue-500');
+      setAmount(editingEvent.amount);
+      setCurrency(editingEvent.currency || 'BYN');
+    } else {
+      setTitle('');
+      setDescription('');
+      setColor('bg-blue-500');
+      setAmount(undefined);
+      setCurrency('BYN');
+    }
+    setIsSubmitting(false);
+  }, [editingEvent, isOpen]);
 
   // Функция для осветления цвета
   const brightenColor = (hex: string, percent: number): string => {
@@ -80,17 +122,6 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
     return `#${toHex(newR)}${toHex(newG)}${toHex(newB)}`;
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      setTitle('');
-      setDescription('');
-      setColor('bg-blue-500');
-      setAmount(undefined);
-      setCurrency('BYN');
-      setIsSubmitting(false);
-    }
-  }, [isOpen]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -113,9 +144,9 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
     }
 
     const eventData: any = {
-      title: title.trim(), // Просто title.trim(), без дефолтного значения!
+      title: title.trim(),
       description: description.trim(),
-      date: selectedDate || new Date().toISOString().split('T')[0],
+      date: editingEvent?.date || selectedDate || new Date().toISOString().split('T')[0],
       color,
       type: 'work',
       completed: false,
@@ -126,12 +157,21 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
       eventData.currency = currency;
       // Для финансовых событий можно оставить title пустым
       if (!eventData.title) {
-        eventData.title = ''; // Пустая строка вместо "Transaction"
+        eventData.title = '';
       }
     }
 
     try {
-      await Promise.resolve(onSave(eventData));
+      if (editingEvent && onUpdate) {
+        // Если редактируем существующее событие
+        await Promise.resolve(onUpdate({
+          id: editingEvent.id,
+          ...eventData
+        }));
+      } else {
+        // Если создаем новое событие
+        await Promise.resolve(onSave(eventData));
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -141,12 +181,19 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
 
   // ИСПРАВЛЕНО: используем ключ категории для логики отображения
   const isFinanceCategory = goalCategory === CATEGORY_KEYS.FINANCE;
-  const formattedDate = selectedDate 
-    ? new Date(selectedDate).toLocaleDateString('ru-RU', {
+  const formattedDate = (editingEvent?.date || selectedDate)
+    ? new Date(editingEvent?.date || selectedDate!).toLocaleDateString('ru-RU', {
         day: 'numeric',
         month: 'long'
       })
     : '';
+
+  // Определяем заголовок модалки
+  const modalTitle = editingEvent 
+    ? t('eventModal.editTitle') || 'Редактировать событие'
+    : (isFinanceCategory 
+        ? t('eventModal.finance.title') 
+        : t('eventModal.regular.title'));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -161,9 +208,7 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-text-primary dark:text-dark-text-primary">
-                {isFinanceCategory 
-                  ? t('eventModal.finance.title') 
-                  : t('eventModal.regular.title')}
+                {modalTitle}
               </h2>
               <div className="flex items-center gap-2 mt-0.5">
                 <p className="text-xs text-text-secondary dark:text-dark-text-secondary">
@@ -245,7 +290,7 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
                           "focus:outline-none focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500",
                           "appearance-none h-10 dark:bg-dark-surface min-w-[80px]",
                           "bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')]",
-                          "dark:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')]",
+                          "dark:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C/svg%3E')]",
                           "bg-[position:right_0.5rem_center] bg-[length:16px_12px] bg-no-repeat",
                           "border-border dark:border-dark-border"
                         )}
@@ -350,7 +395,7 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
                   {t('common.saving')}
                 </div>
               ) : (
-                t('eventModal.addButton')
+                (editingEvent ? t('common.save') : t('eventModal.addButton'))
               )}
             </button>
           </div>

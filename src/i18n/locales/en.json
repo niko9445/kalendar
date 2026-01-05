@@ -119,6 +119,8 @@
   },
   "addGoalModal": {
     "title": "New Goal",
+    "editTitle": "Edit Goal",
+    "editSubtitle": "Modify goal parameters", 
     "subtitle": "Create a goal to track",
     "goalTitle": "Goal Title",
     "titlePlaceholder": "e.g., Learn English",
@@ -129,7 +131,8 @@
     "priority": "Priority",
     "startDate": "Start Date",
     "deadline": "Deadline",
-    "createButton": "Create"
+    "createButton": "Create",
+    "saveButton": "Save" 
   },
   "categories": {
     "learning": "Learning",
@@ -173,6 +176,8 @@
       "titlePlaceholder": "e.g., Salary, Groceries, Cafe"
     },
     "goalLabel": "Goal",
+    "editTitle": "Edit Goal",
+    "editSubtitle": "Modify goal parameters",
     "colorLabel": "Event Color",
     "addButton": "Add",
     "errors": {

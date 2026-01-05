@@ -119,6 +119,8 @@
   },
   "addGoalModal": {
     "title": "Новая цель",
+    "editTitle": "Редактировать цель", 
+    "editSubtitle": "Измените параметры цели", 
     "subtitle": "Создайте цель для отслеживания",
     "goalTitle": "Название цели",
     "titlePlaceholder": "Например: Изучить английский",
@@ -129,7 +131,8 @@
     "priority": "Приоритет",
     "startDate": "Начало",
     "deadline": "Окончание",
-    "createButton": "Создать"
+    "createButton": "Создать",
+    "saveButton": "Сохранить" 
   },
   "categories": {
     "learning": "Обучение",
@@ -173,6 +176,8 @@
       "titlePlaceholder": "Например: Зарплата, Продукты, Кафе"
     },
     "goalLabel": "Цель",
+    "editTitle": "Редактировать событие",
+    "editSubtitle": "Измените параметры цели",
     "colorLabel": "Цвет события",
     "addButton": "Добавить",
     "errors": {
