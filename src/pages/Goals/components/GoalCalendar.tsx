@@ -27,7 +27,7 @@ interface GoalCalendarProps {
     isCompletionDay?: boolean;
     completionDayId?: string;
   }>;
-  onEventSave: (event: any) => void;
+  onEventSave: (event: any) => Promise<void>;
   onEventDelete: (eventId: string) => void;
   onEventToggleComplete: (eventId: string) => void;
   onEditEvent?: (eventId: string) => void; // Новая функция для редактирования события
@@ -217,17 +217,20 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
   }, []);
 
   // Функция для обновления события
-  const handleUpdateEvent = useCallback((eventData: any) => {
-    if (editingEventId) {
-      onEventSave({
-        ...eventData,
-        id: editingEventId, // Добавляем ID для обновления
-        goalId: goal.id,
-      });
-      setEditingEventId(null);
-      setEditingEventData(null);
-    }
-  }, [editingEventId, goal.id, onEventSave]);
+  const handleUpdateEvent = useCallback(async (eventData: any) => { // <-- 1. Добавили async
+  if (editingEventId) {
+    // 2. Добавили await
+    await onEventSave({
+      ...eventData,
+      id: editingEventId, // Добавляем ID для обновления
+      goalId: goal.id,
+    });
+    
+    // Эти строки теперь выполнятся только после успешного сохранения
+    setEditingEventId(null);
+    setEditingEventData(null);
+  }
+}, [editingEventId, goal.id, onEventSave]);
 
   const handlePrevMonth = useCallback(() => {
     if (!canGoToPrevMonth) return;
@@ -551,6 +554,7 @@ const GoalCalendar: React.FC<GoalCalendarProps> = ({
         onUpdate={handleUpdateEvent}
         selectedDate={selectedDate}
         goalTitle={goal.title}
+        goalId={goal.id}
         goalCategory={goal.categoryKey}
         editingEvent={editingEventData}
       />

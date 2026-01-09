@@ -36,7 +36,7 @@ interface GoalItemCompactProps {
   onToggleComplete: () => void;
   onEditGoal: () => void; // Новая функция для редактирования цели
   onDeleteGoal: () => void;
-  onEventSave: (event: any) => void;
+  onEventSave: (event: any) => Promise<void>;
   onEventDelete: (eventId: string) => void;
   onEventToggleComplete: (eventId: string) => void;
   onEditEvent?: (eventId: string) => void; // Новая функция для редактирования события

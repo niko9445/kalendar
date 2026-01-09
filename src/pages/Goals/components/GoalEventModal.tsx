@@ -15,7 +15,8 @@ interface GoalEventModalProps {
     completed: boolean;
     amount?: number;
     currency?: string;
-  }) => void;
+  }) => Promise<void>; // <--- ИЗМЕНЕНО ЗДЕСЬ
+
   onUpdate?: (eventData: {
     id: string;
     title: string;
@@ -26,11 +27,13 @@ interface GoalEventModalProps {
     completed: boolean;
     amount?: number;
     currency?: string;
-  }) => void; // Новая функция для обновления
+  }) => Promise<void>; // <--- И ЗДЕСЬ ТОЖЕ
+
   selectedDate: string | null;
   goalTitle: string;
   goalCategory?: string;
-  editingEvent?: { // Новый параметр для редактирования
+  goalId: string;
+  editingEvent?: {
     id: string;
     title: string;
     description: string;
@@ -43,6 +46,7 @@ interface GoalEventModalProps {
   } | null;
 }
 
+
 const GoalEventModal: React.FC<GoalEventModalProps> = ({
   isOpen,
   onClose,
@@ -52,6 +56,7 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
   goalTitle,
   goalCategory = '',
   editingEvent = null,
+  goalId,
 }) => {
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
@@ -128,51 +133,40 @@ const GoalEventModal: React.FC<GoalEventModalProps> = ({
     
     setIsSubmitting(true);
     
-    // ИСПРАВЛЕНО: используем ключ категории, а не перевод
-    const isFinanceCategory = goalCategory === CATEGORY_KEYS.FINANCE;
-    
-    if (!isFinanceCategory && !title.trim()) {
-      alert(t('eventModal.errors.titleRequired'));
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (isFinanceCategory && (!amount || amount <= 0)) {
-      alert(t('eventModal.errors.amountRequired'));
-      setIsSubmitting(false);
-      return;
+    // ... ваша логика валидации ...
+    if (!title.trim() && !isFinanceCategory) {
+        alert(t('eventModal.errors.titleRequired'));
+        setIsSubmitting(false);
+        return;
     }
 
     const eventData: any = {
       title: title.trim(),
       description: description.trim(),
-      date: editingEvent?.date || selectedDate || new Date().toISOString().split('T')[0],
+      date: editingEvent?.date || selectedDate,
       color,
       type: 'work',
-      completed: false,
+      completed: editingEvent?.completed || false,
+      goalId: goalId,
+      amount: isFinanceCategory ? amount : undefined,
+      currency: isFinanceCategory ? currency : undefined,
     };
-
-    if (isFinanceCategory) {
-      eventData.amount = amount;
-      eventData.currency = currency;
-      // Для финансовых событий можно оставить title пустым
-      if (!eventData.title) {
-        eventData.title = '';
-      }
-    }
-
+    
     try {
       if (editingEvent && onUpdate) {
-        // Если редактируем существующее событие
-        await Promise.resolve(onUpdate({
-          id: editingEvent.id,
-          ...eventData
-        }));
+        await onUpdate({ ...eventData, id: editingEvent.id });
       } else {
-        // Если создаем новое событие
-        await Promise.resolve(onSave(eventData));
+        await onSave(eventData);
       }
+      // ✅ УСПЕХ! Закрываем модальное окно.
+      onClose();
+
+    } catch (error) {
+      // В случае ошибки, выводим ее и оставляем окно открытым
+      console.error("Failed to save event:", error);
+      alert(t('eventModal.errors.saveFailed')); // Добавьте этот перевод
     } finally {
+      // В любом случае убираем состояние загрузки
       setIsSubmitting(false);
     }
   };

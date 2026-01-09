@@ -84,10 +84,11 @@ const Goals: React.FC = () => {
     }
   };
 
-  const handleEventSave = (eventData: any) => {
+  const handleEventSave = async (eventData: any) => {
     if (eventData.id) {
-      // Если есть ID, значит это обновление существующего события
-      updateEvent(eventData.id, {
+      // Если есть ID, значит это обновление
+      // 👇 Добавьте await
+      await updateEvent(eventData.id, {
         goal_id: eventData.goalId,
         title: eventData.title,
         description: eventData.description || '',
@@ -113,8 +114,7 @@ const Goals: React.FC = () => {
         is_completion_day: eventData.type === 'completion',
         completion_day_id: eventData.type === 'completion' ? `completion-${eventData.goalId}-${eventData.date}` : null,
       };
-
-      addEvent(formattedEvent);
+      await addEvent(formattedEvent);
     }
   };
 

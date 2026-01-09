@@ -77,6 +77,8 @@
     "eventsLabel": "События ({{count}})",
     "addEvent": "Добавить событие",
     "generalEvent": "Общее событие",
+    "eventTypeLabel": "Тип события",
+    "selectDatePrompt": "Выберите дату",
     "noEvents": "Событий нет",
     "today": "Сегодня",
     "month": "Месяц",

@@ -4,7 +4,7 @@ import BottomNav from '../../components/Navigation/BottomNav';
 import { useTranslation } from '../../i18n/hooks';
 import { useGoals } from '../../contexts/GoalsContext';
 import { cn } from '../../utils/cn';
-import GoalEventModal from '../Goals/components/GoalEventModal';
+import AddGeneralEventModal from './components/AddGeneralEventModal';
 
 const Calendar: React.FC = () => {
   const { 
@@ -49,8 +49,15 @@ const Calendar: React.FC = () => {
 
   // Обработчик открытия модалки добавления события
   const handleAddEventClick = () => {
-    const dateToUse = selectedDate || new Date().toISOString().split('T')[0];
-    setNewEventDate(dateToUse);
+    // 1. Проверяем, выбрана ли дата
+    if (!selectedDate) {
+      // 2. Если не выбрана, показываем уведомление и выходим
+      alert(t('calendar.selectDatePrompt'));
+      return;
+    }
+    
+    // 3. Если дата выбрана, все работает как раньше
+    setNewEventDate(selectedDate);
     setShowAddEventModal(true);
   };
 
@@ -367,7 +374,12 @@ const Calendar: React.FC = () => {
                 )}
                 <button
                   onClick={handleAddEventClick}
-                  className="w-8 h-8 flex items-center justify-center rounded-md text-text-primary dark:text-dark-text-primary hover:text-primary dark:hover:text-dark-primary hover:bg-surface/50 dark:hover:bg-dark-surface/50 transition-colors"
+                  disabled={!selectedDate} // <-- Добавлено
+                  className={cn(
+                    "w-8 h-8 flex items-center justify-center rounded-md text-text-primary dark:text-dark-text-primary transition-colors",
+                    "hover:text-primary dark:hover:text-dark-primary hover:bg-surface/50 dark:hover:bg-dark-surface/50",
+                    !selectedDate && "opacity-50 cursor-not-allowed" // <-- Добавлено
+                  )}
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                   title={t('calendar.addEvent')}
                   aria-label={t('calendar.addEvent')}
@@ -524,7 +536,12 @@ const Calendar: React.FC = () => {
                 </p>
                 <button
                   onClick={handleAddEventClick}
-                  className="mt-3 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors text-sm border border-blue-200 dark:border-blue-700/30"
+                  disabled={!selectedDate} // <-- Добавлено
+                  className={cn(
+                    "mt-3 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg transition-colors text-sm border border-blue-200 dark:border-blue-700/30",
+                    "hover:bg-blue-200 dark:hover:bg-blue-800/40",
+                    !selectedDate && "opacity-50 cursor-not-allowed" // <-- Добавлено
+                  )}
                 >
                   {t('calendar.addEvent')}
                 </button>
@@ -536,13 +553,11 @@ const Calendar: React.FC = () => {
 
       <BottomNav />
 
-      <GoalEventModal
+      <AddGeneralEventModal
         isOpen={showAddEventModal}
         onClose={() => setShowAddEventModal(false)}
         onSave={handleSaveGeneralEvent}
         selectedDate={newEventDate}
-        goalTitle={t('calendar.generalEvent') || 'Общее событие'}
-        goalCategory=""
       />
     </div>
   );
