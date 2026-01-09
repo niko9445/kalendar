@@ -582,13 +582,21 @@ const Calendar: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-            style={{ zIndex: 100 }} // Убедимся, что уведомление поверх всего
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="fixed top-1/2 left-1/2"
+            style={{ 
+              x: '-50%',
+              y: '-50%',
+              zIndex: 9999
+            }}
           >
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-error/10 dark:bg-dark-error/20 border border-error/20 dark:border-dark-error/30">
+            <div 
+              className="flex flex-col items-center justify-center gap-2 px-6 py-4 rounded-xl bg-error/10 dark:bg-dark-error/20 border border-error/20 dark:border-dark-error/30 backdrop-blur-sm"
+            >
+              {/* 1. Иконка теперь сама по себе */}
               <svg 
-                className="w-5 h-5 text-error dark:text-dark-error flex-shrink-0"
+                className="w-6 h-6 text-error dark:text-dark-error" // Сделаем иконку чуть больше
                 fill="none" 
                 stroke="currentColor" 
                 strokeWidth="2" 
@@ -596,13 +604,16 @@ const Calendar: React.FC = () => {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z"></path>
               </svg>
-              <p className="text-sm font-medium text-error dark:text-dark-error">
+
+              {/* 2. Текст под иконкой, отцентрированный */}
+              <p className="text-sm font-medium text-error dark:text-dark-error text-center">
                 {t('calendar.selectDatePrompt')}
               </p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
     </div>
   );
 };
