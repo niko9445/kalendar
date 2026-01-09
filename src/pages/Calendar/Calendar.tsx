@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Header from '../../components/Navigation/Header';
 import BottomNav from '../../components/Navigation/BottomNav';
 import { useTranslation } from '../../i18n/hooks';
 import { useGoals } from '../../contexts/GoalsContext';
 import { cn } from '../../utils/cn';
 import AddGeneralEventModal from './components/AddGeneralEventModal';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Calendar: React.FC = () => {
   const { 
@@ -24,6 +25,18 @@ const Calendar: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [newEventDate, setNewEventDate] = useState<string>('');
+
+  
+  const [showToast, setShowToast] = useState(false); // <-- ✅ НОВЫЙ STATE
+  const toastTimerRef = useRef<NodeJS.Timeout | null>(null); // <-- ✅ REF для таймера
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
 
   // Получаем все типы событий
   const calendarEvents = getCalendarEvents();
@@ -48,18 +61,21 @@ const Calendar: React.FC = () => {
   };
 
   // Обработчик открытия модалки добавления события
-  const handleAddEventClick = () => {
-    // 1. Проверяем, выбрана ли дата
-    if (!selectedDate) {
-      // 2. Если не выбрана, показываем уведомление и выходим
-      alert(t('calendar.selectDatePrompt'));
-      return;
+ const handleAddEventClick = () => {
+  if (!selectedDate) {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
     }
-    
-    // 3. Если дата выбрана, все работает как раньше
-    setNewEventDate(selectedDate);
-    setShowAddEventModal(true);
-  };
+    setShowToast(true);
+    toastTimerRef.current = setTimeout(() => {
+      setShowToast(false);
+    }, 3000); // Исчезнет через 3 секунды
+    return;
+  }
+  
+  setNewEventDate(selectedDate);
+  setShowAddEventModal(true);
+};
 
   // Обработчик сохранения общего события
   const handleSaveGeneralEvent = async (eventData: {
@@ -376,9 +392,9 @@ const Calendar: React.FC = () => {
                   onClick={handleAddEventClick}
                   className={cn(
                     "w-8 h-8 flex items-center justify-center rounded-md text-text-primary dark:text-dark-text-primary transition-colors",
-                    // Если дата выбрана, добавляем hover-эффекты
+                    // Добавляем hover-эффекты, только если дата выбрана
                     selectedDate && "hover:text-primary dark:hover:text-dark-primary hover:bg-surface/50 dark:hover:bg-dark-surface/50",
-                    // Если дата НЕ выбрана, делаем кнопку полупрозрачной
+                    // Делаем кнопку полупрозрачной, если дата НЕ выбрана
                     !selectedDate && "opacity-50"
                   )}
                   style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -539,9 +555,9 @@ const Calendar: React.FC = () => {
                   onClick={handleAddEventClick}
                   className={cn(
                     "mt-3 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg transition-colors text-sm border border-blue-200 dark:border-blue-700/30",
-                    // Если дата выбрана, добавляем hover-эффекты
+                    // Добавляем hover-эффекты, только если дата выбрана
                     selectedDate && "hover:bg-blue-200 dark:hover:bg-blue-800/40",
-                    // Если дата НЕ выбрана, делаем кнопку полупрозрачной
+                    // Делаем кнопку полупрозрачной, если дата НЕ выбрана
                     !selectedDate && "opacity-50"
                   )}
                 >
@@ -561,6 +577,32 @@ const Calendar: React.FC = () => {
         onSave={handleSaveGeneralEvent}
         selectedDate={newEventDate}
       />
+      <AnimatePresence>
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            style={{ zIndex: 100 }} // Убедимся, что уведомление поверх всего
+          >
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-error/10 dark:bg-dark-error/20 border border-error/20 dark:border-dark-error/30">
+              <svg 
+                className="w-5 h-5 text-error dark:text-dark-error flex-shrink-0"
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z"></path>
+              </svg>
+              <p className="text-sm font-medium text-error dark:text-dark-error">
+                {t('calendar.selectDatePrompt')}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

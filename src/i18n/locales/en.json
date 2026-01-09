@@ -72,7 +72,7 @@
     "generalEvent": "General event",
     "eventsLabel": "Events ({{count}})",
     "eventTypeLabel": "Event Type",
-    "selectDatePrompt": "Select a date",
+    "selectDatePrompt": "Please select a date",
     "noEvents": "No events",
     "today": "Today",
     "month": "Month",
