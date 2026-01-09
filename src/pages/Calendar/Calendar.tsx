@@ -374,11 +374,12 @@ const Calendar: React.FC = () => {
                 )}
                 <button
                   onClick={handleAddEventClick}
-                  disabled={!selectedDate} // <-- Добавлено
                   className={cn(
                     "w-8 h-8 flex items-center justify-center rounded-md text-text-primary dark:text-dark-text-primary transition-colors",
-                    "hover:text-primary dark:hover:text-dark-primary hover:bg-surface/50 dark:hover:bg-dark-surface/50",
-                    !selectedDate && "opacity-50 cursor-not-allowed" // <-- Добавлено
+                    // Если дата выбрана, добавляем hover-эффекты
+                    selectedDate && "hover:text-primary dark:hover:text-dark-primary hover:bg-surface/50 dark:hover:bg-dark-surface/50",
+                    // Если дата НЕ выбрана, делаем кнопку полупрозрачной
+                    !selectedDate && "opacity-50"
                   )}
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                   title={t('calendar.addEvent')}
@@ -536,11 +537,12 @@ const Calendar: React.FC = () => {
                 </p>
                 <button
                   onClick={handleAddEventClick}
-                  disabled={!selectedDate} // <-- Добавлено
                   className={cn(
                     "mt-3 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg transition-colors text-sm border border-blue-200 dark:border-blue-700/30",
-                    "hover:bg-blue-200 dark:hover:bg-blue-800/40",
-                    !selectedDate && "opacity-50 cursor-not-allowed" // <-- Добавлено
+                    // Если дата выбрана, добавляем hover-эффекты
+                    selectedDate && "hover:bg-blue-200 dark:hover:bg-blue-800/40",
+                    // Если дата НЕ выбрана, делаем кнопку полупрозрачной
+                    !selectedDate && "opacity-50"
                   )}
                 >
                   {t('calendar.addEvent')}
